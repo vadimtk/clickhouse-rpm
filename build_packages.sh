@@ -95,6 +95,7 @@ yum install -y python27
 
 yum install -y centos-release-scl
 yum install -y devtoolset-6-gcc*
+yum install -y cmake
 #scl enable devtoolset-6 bash
 
 
