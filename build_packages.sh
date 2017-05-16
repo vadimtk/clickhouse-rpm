@@ -81,9 +81,17 @@ if [ $RHEL_VERSION == 7 ]; then
 fi
 
 # Install MySQL client library from Oracle
-wget http://dev.mysql.com/get/mysql57-community-release-el$RHEL_VERSION-9.noarch.rpm
-sudo yum -y --nogpgcheck install mysql57-community-release-el$RHEL_VERSION-9.noarch.rpm
-if ! sudo yum -y install mysql-community-devel; then exit 1; fi
+cat << EOF > /etc/yum.repos.d/mariadb.repo
+[mariadb]
+name = MariaDB
+baseurl = http://yum.mariadb.org/5.5/centos${RHEL_VERSION}-amd64
+gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
+gpgcheck=1
+
+EOF
+
+yum -y install MariaDB-devel
+
 sudo ln -s /usr/lib64/mysql/libmysqlclient.a /usr/lib64/libmysqlclient.a
 
 # Install cmake
