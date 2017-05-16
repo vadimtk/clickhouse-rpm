@@ -80,7 +80,7 @@ if [ $RHEL_VERSION == 7 ]; then
   if ! sudo yum -y install scons; then exit 1; fi
 fi
 
-# Install MySQL client library from Oracle
+# Install MySQL client library from MariaDB
 cat << EOF > /etc/yum.repos.d/mariadb.repo
 [mariadb]
 name = MariaDB
