@@ -230,7 +230,7 @@ fi
 /usr/bin/clickhouse-compressor
 
 %changelog
-* Mar 17 2017 Vadim Tkachenko
+* Wed May 17 2017 Vadim Tkachenko
 - Adjust to build 54231 release
 * Fri Mar 31 2017 Nikolay Samofatov <nikolay.samofatov@red-soft.biz>
 - fix issue #5 - error with creating clickhouse user
