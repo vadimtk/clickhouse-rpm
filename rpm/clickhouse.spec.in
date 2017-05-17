@@ -89,8 +89,7 @@ cd ..
 mkdir -p $RPM_BUILD_ROOT/usr/share/clickhouse/bin $RPM_BUILD_ROOT/usr/share/clickhouse/headers
 #debian/copy_clang_binaries.sh $RPM_BUILD_ROOT/usr/share/clickhouse/bin/
 #./copy_headers.sh . $RPM_BUILD_ROOT/usr/share/clickhouse/headers
-
-cp -r %{_builddir}/%{buildsubdir}/tools/etc/* %{buildroot}/etc/
+#cp -r %{_builddir}/%{buildsubdir}/tools/etc/* %{buildroot}/etc/
 
 %clean
 rm -rf $RPM_BUILD_ROOT
