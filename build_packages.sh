@@ -8,11 +8,12 @@
 #  - build user needs to have sudo priviledges, preferrably with NOPASSWD
 #
 # Tested on:
-#  - GosLinux IC4
 #  - CentOS 6.8
 #  - CentOS 7.2
+#  - Fedora 25
 #
 # Copyright (C) 2016 Red Soft LLC
+# Copyright (C) 2017 Altinity Ltd
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -49,6 +50,12 @@ export PATH=${PATH/"/usr/local/bin:"/}:/usr/local/bin
 
 # Determine RHEL major version
 RHEL_VERSION=`rpm -qa --queryformat '%{VERSION}\n' '(redhat|sl|slf|centos|oraclelinux|goslinux)-release(|-server|-workstation|-client|-computenode)'`
+
+# check if we build for fedora
+if [ -e "/etc/fedora-release" ]; then
+        RHEL_VERSION="25"
+fi
+
 
 function prepare_dependencies {
 
@@ -87,29 +94,46 @@ name = MariaDB
 baseurl = http://yum.mariadb.org/5.5/centos${RHEL_VERSION}-amd64
 gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
 gpgcheck=1
-
 EOF
 
-yum -y install MariaDB-devel
-
-sudo ln -s /usr/lib64/mysql/libmysqlclient.a /usr/lib64/libmysqlclient.a
 
 # Install cmake
 
 # Install Python 2.7
 yum install -y python27
 
-# Install GCC 6
+# Install GCC 6, but not for Fedora 25 
 
-yum install -y centos-release-scl
-yum install -y devtoolset-6-gcc*
+export CC=gcc
+export CXX=g++
+
+if [ "$RHEL_VERSION" -ne "25" ]; then
+  yum install -y centos-release-scl
+  yum install -y devtoolset-6-gcc*
+  export CC=/opt/rh/devtoolset-6/root/usr/bin/gcc
+  export CXX=/opt/rh/devtoolset-6/root/usr/bin/g++
+else
+
+cat << EOF > /etc/yum.repos.d/mariadb.repo
+[mariadb]
+name = MariaDB
+baseurl = http://yum.mariadb.org/10.1/fedora25-amd64
+gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
+gpgcheck=1
+EOF
+yum install -y libstdc++-static
+
+fi
+
+yum -y install MariaDB-devel
+sudo ln -s /usr/lib64/mysql/libmysqlclient.a /usr/lib64/libmysqlclient.a
+
 yum install -y cmake
 #scl enable devtoolset-6 bash
 
 
 # Use GCC 6 for builds
-export CC=/opt/rh/devtoolset-6/root/usr/bin/gcc
-export CXX=/opt/rh/devtoolset-6/root/usr/bin/g++
+
 
 
 # Install Clang from Subversion repo
@@ -136,7 +160,8 @@ wget https://github.com/yandex/ClickHouse/archive/v$CH_VERSION-$CH_TAG.zip
 mv v$CH_VERSION-$CH_TAG.zip ClickHouse-$CH_VERSION-$CH_TAG.zip
 cp *.zip ~/rpmbuild/SOURCES
 rpmbuild -bs clickhouse.spec
-CC=/opt/rh/devtoolset-6/root/usr/bin/gcc CXX=/opt/rh/devtoolset-6/root/usr/bin/g++ rpmbuild -bb clickhouse.spec
+#CC=/opt/rh/devtoolset-6/root/usr/bin/gcc CXX=/opt/rh/devtoolset-6/root/usr/bin/g++ 
+rpmbuild -bb clickhouse.spec
 
 }
 
