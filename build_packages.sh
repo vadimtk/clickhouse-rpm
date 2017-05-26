@@ -28,19 +28,10 @@
 # limitations under the License.
 
 # Git version of ClickHouse that we package
-CH_VERSION=1.1.54231
+CH_VERSION=1.1.54236
 
 # Git tag marker (stable/testing)
 CH_TAG=stable
-
-# SSH username used to publish built packages
-REPO_USER=clickhouse
-
-# Hostname of the server used to publish packages
-REPO_SERVER=10.81.1.162
-
-# Root directory for repositories on the remote server
-REPO_ROOT=/var/www/html/repos/clickhouse
 
 # Detect number of threads
 export THREADS=$(grep -c ^processor /proc/cpuinfo)
@@ -74,7 +65,7 @@ if [ $RHEL_VERSION == 7 ]; then
 fi
 
 # Install development packages
-if ! sudo yum -y install $DISTRO_PACKAGES rpm-build redhat-rpm-config gcc-c++ readline-devel\
+if ! sudo yum -y install $DISTRO_PACKAGES make rpm-build redhat-rpm-config gcc-c++ readline-devel\
   unixODBC-devel subversion python-devel git wget openssl-devel m4 createrepo glib2-devel\
   libicu-devel zlib-devel libtool-ltdl-devel openssl-devel
 then exit 1
