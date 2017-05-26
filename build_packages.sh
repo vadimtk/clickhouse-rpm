@@ -151,9 +151,11 @@ wget https://github.com/yandex/ClickHouse/archive/v$CH_VERSION-$CH_TAG.zip
 mv v$CH_VERSION-$CH_TAG.zip ClickHouse-$CH_VERSION-$CH_TAG.zip
 cp *.zip ~/rpmbuild/SOURCES
 rpmbuild -bs clickhouse.spec
-#CC=/opt/rh/devtoolset-6/root/usr/bin/gcc CXX=/opt/rh/devtoolset-6/root/usr/bin/g++ 
-rpmbuild -bb clickhouse.spec
-
+if [ "$RHEL_VERSION" -ne "25" ]; then
+ CC=/opt/rh/devtoolset-6/root/usr/bin/gcc CXX=/opt/rh/devtoolset-6/root/usr/bin/g++ rpmbuild -bb clickhouse.spec
+else
+ rpmbuild -bb clickhouse.spec
+fi
 }
 
 function publish_packages {
