@@ -67,7 +67,7 @@ fi
 # Install development packages
 if ! sudo yum -y install $DISTRO_PACKAGES make rpm-build redhat-rpm-config gcc-c++ readline-devel\
   unixODBC-devel subversion python-devel git wget openssl-devel m4 createrepo glib2-devel\
-  libicu-devel zlib-devel libtool-ltdl-devel openssl-devel
+  libicu-devel zlib-devel libtool-ltdl-devel openssl-devel xz-devel
 then exit 1
 fi
 
