@@ -93,9 +93,11 @@ mkdir -p $RPM_BUILD_ROOT/usr/share/clickhouse/bin $RPM_BUILD_ROOT/usr/share/clic
 mkdir -p %{buildroot}/etc/clickhouse-server
 mkdir -p %{buildroot}/etc/clickhouse-client
 mkdir -p %{buildroot}/etc/init.d
+mkdir -p %{buildroot}/etc/cron.d
 mkdir -p %{buildroot}/etc/security/limits.d/
 mkdir -p %{buildroot}/usr/bin
 cp -r %{_builddir}/%{buildsubdir}/debian/clickhouse-server.init %{buildroot}/etc/init.d/clickhouse-server
+cp -r %{_builddir}/%{buildsubdir}/debian/clickhouse-server.cron.d %{buildroot}/etc/cron.d/clickhouse-server
 cp -r %{_builddir}/%{buildsubdir}/debian/clickhouse.limits %{buildroot}/etc/security/limits.d/clickhouse.conf
 cp -r %{_builddir}/%{buildsubdir}/dbms/src/Server/config.xml %{buildroot}/etc/clickhouse-server/
 #cp -r %{_builddir}/%{buildsubdir}/dbms/src/Client/config.xml %{buildroot}/etc/clickhouse-client/
@@ -223,8 +225,8 @@ fi
 /etc/clickhouse-server/users.xml
 
 %files server
-/etc/cron.d/clickhouse-server
 /etc/init.d/clickhouse-server
+/etc/cron.d/clickhouse-server
 /etc/security/limits.d/clickhouse.conf
 /usr/bin/clickhouse-server
 /usr/bin/clickhouse

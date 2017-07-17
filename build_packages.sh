@@ -104,13 +104,13 @@ function prepare_dependencies {
 	fi
 
 	# Install MySQL client library from MariaDB
-	sudo cat << EOF > /etc/yum.repos.d/mariadb.repo
+	sudo bash -c "cat << EOF > /etc/yum.repos.d/mariadb.repo
 [mariadb]
-name = MariaDB
-baseurl = http://yum.mariadb.org/5.5/centos${RHEL_VERSION}-amd64
+name=MariaDB
+baseurl=http://yum.mariadb.org/5.5/centos${RHEL_VERSION}-amd64
 gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
 gpgcheck=1
-EOF
+EOF"
 
 	# Install cmake
 
@@ -128,13 +128,14 @@ EOF
 		export CC=/opt/rh/devtoolset-6/root/usr/bin/gcc
 		export CXX=/opt/rh/devtoolset-6/root/usr/bin/g++
 	else
-		sudo cat << EOF > /etc/yum.repos.d/mariadb.repo
+		sudo bash -c "cat << EOF > /etc/yum.repos.d/mariadb.repo
 [mariadb]
-name = MariaDB
-baseurl = http://yum.mariadb.org/10.1/fedora25-amd64
+name=MariaDB
+baseurl=http://yum.mariadb.org/10.1/fedora25-amd64
 gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
 gpgcheck=1
-EOF
+EOF"
+
 		sudo yum install -y libstdc++-static
 	fi
 
@@ -188,7 +189,7 @@ function make_packages {
 	echo "RPMs are available at"
 	echo "$RPMBUILD_DIR/RPMS/x86_64/"
 
-	ls -l "$RPMBUILD_DIR/RPMS/x86_64/clickhouse*"
+	ls -l "$RPMBUILD_DIR"/RPMS/x86_64/clickhouse*
 
 	echo "######################################################"
 	echo "Done for version v$CH_VERSION-$CH_TAG"
