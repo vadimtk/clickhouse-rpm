@@ -110,11 +110,17 @@ rm -rf $RPM_BUILD_ROOT
 %post compressor
 CLICKHOUSE_USER=clickhouse
 CLICKHOUSE_GROUP=${CLICKHOUSE_USER}
+CLICKHOUSE_DATADIR=/var/lib/clickhouse
 
 # Make sure the administrative user exists
 if ! getent passwd ${CLICKHOUSE_USER} > /dev/null; then
-        adduser --system --no-create-home --home /nonexistent \
-                --shell /bin/false --comment "Clickhouse server" clickhouse > /dev/null
+	adduser --system --no-create-home --home ${CLICKHOUSE_DATADIR} \
+		--shell /sbin/nologin --comment "Clickhouse server" clickhouse > /dev/null
+fi
+
+# if the user was created manually, make sure the group is there as well
+if ! getent group ${CLICKHOUSE_GROUP} > /dev/null; then
+	addgroup --system ${CLICKHOUSE_GROUP} > /dev/null
 fi
 
 mkdir -p /etc/compressor/conf.d
@@ -140,8 +146,8 @@ CLICKHOUSE_SERVER_ETCDIR=/etc/clickhouse-server
 
 # Make sure the administrative user exists
 if ! getent passwd ${CLICKHOUSE_USER} > /dev/null; then
-        adduser --system --no-create-home --home /nonexistent \
-                --shell /bin/false --comment "Clickhouse server" clickhouse > /dev/null
+	adduser --system --no-create-home --home ${CLICKHOUSE_DATADIR} \
+		--shell /sbin/nologin --comment "Clickhouse server" clickhouse > /dev/null
 fi
 
 # if the user was created manually, make sure the group is there as well
@@ -217,10 +223,12 @@ fi
 /etc/clickhouse-server/users.xml
 
 %files server
+/etc/cron.d/clickhouse-server
 /etc/init.d/clickhouse-server
 /etc/security/limits.d/clickhouse.conf
 /usr/bin/clickhouse-server
 /usr/bin/clickhouse
+/usr/share/clickhouse
 
 %files client
 #/etc/clickhouse-client/config.xml

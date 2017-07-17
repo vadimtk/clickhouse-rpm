@@ -65,14 +65,16 @@ fi
 
 function prepare_dependencies {
 
-	echo "Make lib dir: $LIB_DIR"
-	mkdir -p $LIB_DIR
+	if [ ! -d "$LIB_DIR" ]; then
+		echo "Make lib dir: $LIB_DIR"
+		mkdir -p "$LIB_DIR"
+	fi
 
 	echo "Clean lib dir: $LIB_DIR"
-	rm -rf $LIB_DIR/*
+	rm -rf "$LIB_DIR/"*
 
 	echo "cd into $LIB_DIR"
-	cd $LIB_DIR
+	cd "$LIB_DIR"
 
 	if [ $RHEL_VERSION == 6 ]; then
 		DISTRO_PACKAGES="scons"
@@ -149,28 +151,28 @@ EOF
 function make_packages {
 
 	# Prepare dirs
-	mkdir -p $RPMBUILD_DIR/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
-	mkdir -p $RPMSPEC_DIR
+	mkdir -p "$RPMBUILD_DIR"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+	mkdir -p "$RPMSPEC_DIR"
 
 	# Clean up after previous run
-	rm -f $RPMBUILD_DIR/RPMS/x86_64/clickhouse*
-	rm -f $RPMBUILD_DIR/SRPMS/clickhouse*
-	rm -f $RPMSPEC_DIR/*.zip
+	rm -f "$RPMBUILD_DIR"/RPMS/x86_64/clickhouse*
+	rm -f "$RPMBUILD_DIR"/SRPMS/clickhouse*
+	rm -f "$RPMSPEC_DIR"/*.zip
 
 	# Configure RPM build environment
 	echo '%_topdir '"$RPMBUILD_DIR"'
 %_smp_mflags  -j'"$THREADS" > ~/.rpmmacros
 
 	# Create RPM packages
-	cd $RPMSPEC_DIR
+	cd "$RPMSPEC_DIR"
 	
 	# Create spec file
-	sed -e s/@CH_VERSION@/$CH_VERSION/ -e s/@CH_TAG@/$CH_TAG/ "$CWD_DIR/rpm/clickhouse.spec.in" > clickhouse.spec
+	sed -e "s/@CH_VERSION@/$CH_VERSION/" -e "s/@CH_TAG@/$CH_TAG/" "$CWD_DIR/rpm/clickhouse.spec.in" > clickhouse.spec
 
 	# Prepase ClickHouse source archive
-	wget https://github.com/yandex/ClickHouse/archive/v$CH_VERSION-$CH_TAG.zip
-	mv v$CH_VERSION-$CH_TAG.zip ClickHouse-$CH_VERSION-$CH_TAG.zip
-	cp *.zip $RPMBUILD_DIR/SOURCES
+	wget "https://github.com/yandex/ClickHouse/archive/v$CH_VERSION-$CH_TAG.zip"
+	mv "v$CH_VERSION-$CH_TAG.zip" "ClickHouse-$CH_VERSION-$CH_TAG.zip"
+	cp *.zip "$RPMBUILD_DIR/SOURCES"
 
 	rpmbuild -bs clickhouse.spec
 	if [ "$RHEL_VERSION" -ne "25" ]; then
@@ -186,7 +188,7 @@ function make_packages {
 	echo "RPMs are available at"
 	echo "$RPMBUILD_DIR/RPMS/x86_64/"
 
-	ls -l $RPMBUILD_DIR/RPMS/x86_64/clickhouse*
+	ls -l "$RPMBUILD_DIR/RPMS/x86_64/clickhouse*"
 
 	echo "######################################################"
 	echo "Done for version v$CH_VERSION-$CH_TAG"
