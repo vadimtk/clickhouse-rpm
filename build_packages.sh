@@ -59,50 +59,50 @@ RHEL_VERSION=`rpm -qa --queryformat '%{VERSION}\n' '(redhat|sl|slf|centos|oracle
 
 # check if we build for fedora
 if [ -e "/etc/fedora-release" ]; then
-        RHEL_VERSION="25"
+	RHEL_VERSION="25"
 fi
 
 
 function prepare_dependencies {
 
-echo "Make lib dir: $LIB_DIR"
-mkdir -p $LIB_DIR
+	echo "Make lib dir: $LIB_DIR"
+	mkdir -p $LIB_DIR
 
-echo "Clean lib dir: $LIB_DIR"
-rm -rf $LIB_DIR/*
+	echo "Clean lib dir: $LIB_DIR"
+	rm -rf $LIB_DIR/*
 
-echo "cd into $LIB_DIR"
-cd $LIB_DIR
+	echo "cd into $LIB_DIR"
+	cd $LIB_DIR
 
-if [ $RHEL_VERSION == 6 ]; then
-  DISTRO_PACKAGES="scons"
-fi
+	if [ $RHEL_VERSION == 6 ]; then
+		DISTRO_PACKAGES="scons"
+	fi
 
-if [ $RHEL_VERSION == 7 ]; then
-  DISTRO_PACKAGES=""
-fi
+	if [ $RHEL_VERSION == 7 ]; then
+		DISTRO_PACKAGES=""
+	fi
 
-# Install development packages
-if ! sudo yum -y install $DISTRO_PACKAGES make rpm-build redhat-rpm-config gcc-c++ readline-devel\
-  unixODBC-devel subversion python-devel git wget openssl-devel m4 createrepo glib2-devel\
-  libicu-devel zlib-devel libtool-ltdl-devel openssl-devel xz-devel
-then 
-  echo "FAILED to install development packages"
-  exit 1
-fi
+	# Install development packages
+	if ! sudo yum -y install $DISTRO_PACKAGES make rpm-build redhat-rpm-config gcc-c++ readline-devel\
+		unixODBC-devel subversion python-devel git wget openssl-devel m4 createrepo glib2-devel\
+		libicu-devel zlib-devel libtool-ltdl-devel openssl-devel xz-devel
+	then 
+		echo "FAILED to install development packages"
+		exit 1
+	fi
 
-if [ $RHEL_VERSION == 7 ]; then
-  # Connect EPEL repository for CentOS 7 (for scons)
-  wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-  sudo yum -y --nogpgcheck install epel-release-latest-7.noarch.rpm
-  if ! sudo yum -y install scons; then
-    echo "FAILED to install scons"
-    exit 1; 
-  fi
-fi
+	if [ $RHEL_VERSION == 7 ]; then
+		# Connect EPEL repository for CentOS 7 (for scons)
+		wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+		sudo yum -y --nogpgcheck install epel-release-latest-7.noarch.rpm
+		if ! sudo yum -y install scons; then
+			echo "FAILED to install scons"
+			exit 1; 
+		fi
+	fi
 
-# Install MySQL client library from MariaDB
-sudo cat << EOF > /etc/yum.repos.d/mariadb.repo
+	# Install MySQL client library from MariaDB
+	sudo cat << EOF > /etc/yum.repos.d/mariadb.repo
 [mariadb]
 name = MariaDB
 baseurl = http://yum.mariadb.org/5.5/centos${RHEL_VERSION}-amd64
@@ -110,71 +110,86 @@ gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
 gpgcheck=1
 EOF
 
+	# Install cmake
 
-# Install cmake
+	# Install Python 2.7
+	sudo yum install -y python27
 
-# Install Python 2.7
-sudo yum install -y python27
+	# Install GCC 6, but not for Fedora 25 
 
-# Install GCC 6, but not for Fedora 25 
+	export CC=gcc
+	export CXX=g++
 
-export CC=gcc
-export CXX=g++
-
-if [ "$RHEL_VERSION" -ne "25" ]; then
-  sudo yum install -y centos-release-scl
-  sudo yum install -y devtoolset-6-gcc*
-  export CC=/opt/rh/devtoolset-6/root/usr/bin/gcc
-  export CXX=/opt/rh/devtoolset-6/root/usr/bin/g++
-else
-  sudo cat << EOF > /etc/yum.repos.d/mariadb.repo
+	if [ "$RHEL_VERSION" -ne "25" ]; then
+		sudo yum install -y centos-release-scl
+		sudo yum install -y devtoolset-6-gcc*
+		export CC=/opt/rh/devtoolset-6/root/usr/bin/gcc
+		export CXX=/opt/rh/devtoolset-6/root/usr/bin/g++
+	else
+		sudo cat << EOF > /etc/yum.repos.d/mariadb.repo
 [mariadb]
 name = MariaDB
 baseurl = http://yum.mariadb.org/10.1/fedora25-amd64
 gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
 gpgcheck=1
 EOF
-  sudo yum install -y libstdc++-static
+		sudo yum install -y libstdc++-static
+	fi
 
-fi
+	sudo yum -y install MariaDB-devel
+	sudo ln -s /usr/lib64/mysql/libmysqlclient.a /usr/lib64/libmysqlclient.a
 
-sudo yum -y install MariaDB-devel
-sudo ln -s /usr/lib64/mysql/libmysqlclient.a /usr/lib64/libmysqlclient.a
+	sudo yum install -y cmake
+	#scl enable devtoolset-6 bash
 
-sudo yum install -y cmake
-#scl enable devtoolset-6 bash
-
-echo "Return back to dir: $CWD"
-cd $CWD
+	echo "Return back to dir: $CWD"
+	cd $CWD
 }
 
 function make_packages {
 
-# Prepare dirs
-mkdir -p $RPMBUILD_DIR/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
-mkdir -p $RPMSPEC_DIR
+	# Prepare dirs
+	mkdir -p $RPMBUILD_DIR/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+	mkdir -p $RPMSPEC_DIR
 
-# Clean up after previous run
-rm -f $RPMBUILD_DIR/RPMS/x86_64/clickhouse*
-rm -f $RPMBUILD_DIR/SRPMS/clickhouse*
-rm -f $RPMSPEC_DIR/*.zip
+	# Clean up after previous run
+	rm -f $RPMBUILD_DIR/RPMS/x86_64/clickhouse*
+	rm -f $RPMBUILD_DIR/SRPMS/clickhouse*
+	rm -f $RPMSPEC_DIR/*.zip
 
-# Configure RPM build environment
-echo '%_topdir '"$RPMBUILD_DIR"'
+	# Configure RPM build environment
+	echo '%_topdir '"$RPMBUILD_DIR"'
 %_smp_mflags  -j'"$THREADS" > ~/.rpmmacros
 
-# Create RPM packages
-cd $RPMSPEC_DIR
-sed -e s/@CH_VERSION@/$CH_VERSION/ -e s/@CH_TAG@/$CH_TAG/ "$CWD/rpm/clickhouse.spec.in" > clickhouse.spec
-wget https://github.com/yandex/ClickHouse/archive/v$CH_VERSION-$CH_TAG.zip
-mv v$CH_VERSION-$CH_TAG.zip ClickHouse-$CH_VERSION-$CH_TAG.zip
-cp *.zip $RPMBUILD_DIR/SOURCES
-rpmbuild -bs clickhouse.spec
-if [ "$RHEL_VERSION" -ne "25" ]; then
- CC=/opt/rh/devtoolset-6/root/usr/bin/gcc CXX=/opt/rh/devtoolset-6/root/usr/bin/g++ rpmbuild -bb clickhouse.spec
-else
- rpmbuild -bb clickhouse.spec
-fi
+	# Create RPM packages
+	cd $RPMSPEC_DIR
+	
+	# Create spec file
+	sed -e s/@CH_VERSION@/$CH_VERSION/ -e s/@CH_TAG@/$CH_TAG/ "$CWD_DIR/rpm/clickhouse.spec.in" > clickhouse.spec
+
+	# Prepase ClickHouse source archive
+	wget https://github.com/yandex/ClickHouse/archive/v$CH_VERSION-$CH_TAG.zip
+	mv v$CH_VERSION-$CH_TAG.zip ClickHouse-$CH_VERSION-$CH_TAG.zip
+	cp *.zip $RPMBUILD_DIR/SOURCES
+
+	rpmbuild -bs clickhouse.spec
+	if [ "$RHEL_VERSION" -ne "25" ]; then
+		CC=/opt/rh/devtoolset-6/root/usr/bin/gcc CXX=/opt/rh/devtoolset-6/root/usr/bin/g++ rpmbuild -bb clickhouse.spec
+	else
+		rpmbuild -bb clickhouse.spec
+	fi
+
+	echo "######################################################"
+	echo "######################################################"
+	echo "######################################################"
+	echo "######################################################"
+	echo "RPMs are available at"
+	echo "$PMBUILD_DIR/RPMS/x86_64/"
+
+	ls -l $RPMBUILD_DIR/RPMS/x86_64/clickhouse*
+
+	echo "######################################################"
+	echo "Done for version v$CH_VERSION-$CH_TAG"
 }
 
 function publish_packages {
