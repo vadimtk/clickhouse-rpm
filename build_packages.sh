@@ -33,11 +33,20 @@ CH_VERSION="1.1.54236"
 # Git tag marker (stable/testing)
 CH_TAG="stable"
 
+# Current work dir
+CWD_DIR=`pwd`
+
+# Where runtime data would be kept
+RUNTIME_DIR="$CWD_DIR/runtime"
+
 # Where additional packages would be kept
-LIB_DIR="lib"
+LIB_DIR="$RUNTIME_DIR/lib"
 
 # Where RPMs would be built
-RPMBUILD_DIR=`pwd`"/rpmbuild"
+RPMBUILD_DIR="$RUNTIME_DIR/rpmbuild"
+
+# Where RPM spec file would be kept
+RPMSPEC_DIR="$RUNTIME_DIR/rpmspec"
 
 # Detect number of threads
 export THREADS=$(grep -c ^processor /proc/cpuinfo)
@@ -56,12 +65,13 @@ fi
 
 function prepare_dependencies {
 
-CWD=`pwd`
-echo "Cur work dir: $CWD"
 echo "Make lib dir: $LIB_DIR"
-mkdir $LIB_DIR
-echo "Clean dir: $LIB_DIR dir"
+mkdir -p $LIB_DIR
+
+echo "Clean lib dir: $LIB_DIR"
 rm -rf $LIB_DIR/*
+
+echo "cd into $LIB_DIR"
 cd $LIB_DIR
 
 if [ $RHEL_VERSION == 6 ]; then
@@ -76,14 +86,19 @@ fi
 if ! sudo yum -y install $DISTRO_PACKAGES make rpm-build redhat-rpm-config gcc-c++ readline-devel\
   unixODBC-devel subversion python-devel git wget openssl-devel m4 createrepo glib2-devel\
   libicu-devel zlib-devel libtool-ltdl-devel openssl-devel xz-devel
-then exit 1
+then 
+  echo "FAILED to install development packages"
+  exit 1
 fi
 
 if [ $RHEL_VERSION == 7 ]; then
   # Connect EPEL repository for CentOS 7 (for scons)
   wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
   sudo yum -y --nogpgcheck install epel-release-latest-7.noarch.rpm
-  if ! sudo yum -y install scons; then exit 1; fi
+  if ! sudo yum -y install scons; then
+    echo "FAILED to install scons"
+    exit 1; 
+  fi
 fi
 
 # Install MySQL client library from MariaDB
@@ -112,15 +127,14 @@ if [ "$RHEL_VERSION" -ne "25" ]; then
   export CC=/opt/rh/devtoolset-6/root/usr/bin/gcc
   export CXX=/opt/rh/devtoolset-6/root/usr/bin/g++
 else
-
-sudo cat << EOF > /etc/yum.repos.d/mariadb.repo
+  sudo cat << EOF > /etc/yum.repos.d/mariadb.repo
 [mariadb]
 name = MariaDB
 baseurl = http://yum.mariadb.org/10.1/fedora25-amd64
 gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
 gpgcheck=1
 EOF
-sudo yum install -y libstdc++-static
+  sudo yum install -y libstdc++-static
 
 fi
 
@@ -136,19 +150,22 @@ cd $CWD
 
 function make_packages {
 
+# Prepare dirs
+mkdir -p $RPMBUILD_DIR/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+mkdir -p $RPMSPEC_DIR
+
 # Clean up after previous run
 rm -f $RPMBUILD_DIR/RPMS/x86_64/clickhouse*
 rm -f $RPMBUILD_DIR/SRPMS/clickhouse*
-rm -f rpm/*.zip
+rm -f $RPMSPEC_DIR/*.zip
 
 # Configure RPM build environment
-mkdir -p $RPMBUILD_DIR/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
 echo '%_topdir '"$RPMBUILD_DIR"'
 %_smp_mflags  -j'"$THREADS" > ~/.rpmmacros
 
 # Create RPM packages
-cd rpm
-sed -e s/@CH_VERSION@/$CH_VERSION/ -e s/@CH_TAG@/$CH_TAG/ clickhouse.spec.in > clickhouse.spec
+cd $RPMSPEC_DIR
+sed -e s/@CH_VERSION@/$CH_VERSION/ -e s/@CH_TAG@/$CH_TAG/ "$CWD/rpm/clickhouse.spec.in" > clickhouse.spec
 wget https://github.com/yandex/ClickHouse/archive/v$CH_VERSION-$CH_TAG.zip
 mv v$CH_VERSION-$CH_TAG.zip ClickHouse-$CH_VERSION-$CH_TAG.zip
 cp *.zip $RPMBUILD_DIR/SOURCES
