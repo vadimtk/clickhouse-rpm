@@ -28,7 +28,7 @@
 # limitations under the License.
 
 # Git version of ClickHouse that we package
-CH_VERSION="1.1.54236"
+CH_VERSION="1.1.54245"
 
 # Git tag marker (stable/testing)
 CH_TAG="stable"
@@ -184,7 +184,7 @@ function make_packages {
 	echo "######################################################"
 	echo "######################################################"
 	echo "RPMs are available at"
-	echo "$PMBUILD_DIR/RPMS/x86_64/"
+	echo "$RPMBUILD_DIR/RPMS/x86_64/"
 
 	ls -l $RPMBUILD_DIR/RPMS/x86_64/clickhouse*
 

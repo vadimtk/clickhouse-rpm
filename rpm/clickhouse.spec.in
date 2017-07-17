@@ -98,7 +98,7 @@ mkdir -p %{buildroot}/usr/bin
 cp -r %{_builddir}/%{buildsubdir}/debian/clickhouse-server.init %{buildroot}/etc/init.d/clickhouse-server
 cp -r %{_builddir}/%{buildsubdir}/debian/clickhouse.limits %{buildroot}/etc/security/limits.d/clickhouse.conf
 cp -r %{_builddir}/%{buildsubdir}/dbms/src/Server/config.xml %{buildroot}/etc/clickhouse-server/
-cp -r %{_builddir}/%{buildsubdir}/dbms/src/Client/config.xml %{buildroot}/etc/clickhouse-client/
+#cp -r %{_builddir}/%{buildsubdir}/dbms/src/Client/config.xml %{buildroot}/etc/clickhouse-client/
 cp -r %{_builddir}/%{buildsubdir}/dbms/src/Server/users.xml %{buildroot}/etc/clickhouse-server/
 cp -r %{buildroot}/usr/local/bin/* %{buildroot}/usr/bin
 rm -fr %{buildroot}/usr/local
@@ -223,7 +223,7 @@ fi
 /usr/bin/clickhouse
 
 %files client
-/etc/clickhouse-client/config.xml
+#/etc/clickhouse-client/config.xml
 /usr/bin/clickhouse-client
 
 %files compressor
