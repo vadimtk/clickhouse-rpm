@@ -28,10 +28,25 @@
 # limitations under the License.
 
 # Git version of ClickHouse that we package
-CH_VERSION=1.1.54236
+CH_VERSION="1.1.54245"
 
 # Git tag marker (stable/testing)
-CH_TAG=stable
+CH_TAG="stable"
+
+# Current work dir
+CWD_DIR=`pwd`
+
+# Where runtime data would be kept
+RUNTIME_DIR="$CWD_DIR/runtime"
+
+# Where additional packages would be kept
+LIB_DIR="$RUNTIME_DIR/lib"
+
+# Where RPMs would be built
+RPMBUILD_DIR="$RUNTIME_DIR/rpmbuild"
+
+# Where RPM spec file would be kept
+RPMSPEC_DIR="$RUNTIME_DIR/rpmspec"
 
 # Detect number of threads
 export THREADS=$(grep -c ^processor /proc/cpuinfo)
@@ -44,124 +59,146 @@ RHEL_VERSION=`rpm -qa --queryformat '%{VERSION}\n' '(redhat|sl|slf|centos|oracle
 
 # check if we build for fedora
 if [ -e "/etc/fedora-release" ]; then
-        RHEL_VERSION="25"
+	RHEL_VERSION="25"
 fi
 
 
 function prepare_dependencies {
 
-mkdir lib
+	if [ ! -d "$LIB_DIR" ]; then
+		echo "Make lib dir: $LIB_DIR"
+		mkdir -p "$LIB_DIR"
+	fi
 
-sudo rm -rf lib/*
+	echo "Clean lib dir: $LIB_DIR"
+	rm -rf "$LIB_DIR/"*
 
-cd lib
+	echo "cd into $LIB_DIR"
+	cd "$LIB_DIR"
 
-if [ $RHEL_VERSION == 6 ]; then
-  DISTRO_PACKAGES="scons"
-fi
+	if [ $RHEL_VERSION == 6 ]; then
+		DISTRO_PACKAGES="scons"
+	fi
 
-if [ $RHEL_VERSION == 7 ]; then
-  DISTRO_PACKAGES=""
-fi
+	if [ $RHEL_VERSION == 7 ]; then
+		DISTRO_PACKAGES=""
+	fi
 
-# Install development packages
-if ! sudo yum -y install $DISTRO_PACKAGES make rpm-build redhat-rpm-config gcc-c++ readline-devel\
-  unixODBC-devel subversion python-devel git wget openssl-devel m4 createrepo glib2-devel\
-  libicu-devel zlib-devel libtool-ltdl-devel openssl-devel xz-devel
-then exit 1
-fi
+	# Install development packages
+	if ! sudo yum -y install $DISTRO_PACKAGES make rpm-build redhat-rpm-config gcc-c++ readline-devel\
+		unixODBC-devel subversion python-devel git wget openssl-devel m4 createrepo glib2-devel\
+		libicu-devel zlib-devel libtool-ltdl-devel openssl-devel xz-devel
+	then 
+		echo "FAILED to install development packages"
+		exit 1
+	fi
 
-if [ $RHEL_VERSION == 7 ]; then
-  # Connect EPEL repository for CentOS 7 (for scons)
-  wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-  sudo yum -y --nogpgcheck install epel-release-latest-7.noarch.rpm
-  if ! sudo yum -y install scons; then exit 1; fi
-fi
+	if [ $RHEL_VERSION == 7 ]; then
+		# Connect EPEL repository for CentOS 7 (for scons)
+		wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+		sudo yum -y --nogpgcheck install epel-release-latest-7.noarch.rpm
+		if ! sudo yum -y install scons; then
+			echo "FAILED to install scons"
+			exit 1; 
+		fi
+	fi
 
-# Install MySQL client library from MariaDB
-cat << EOF > /etc/yum.repos.d/mariadb.repo
+	# Install MySQL client library from MariaDB
+	sudo bash -c "cat << EOF > /etc/yum.repos.d/mariadb.repo
 [mariadb]
-name = MariaDB
-baseurl = http://yum.mariadb.org/5.5/centos${RHEL_VERSION}-amd64
+name=MariaDB
+baseurl=http://yum.mariadb.org/5.5/centos${RHEL_VERSION}-amd64
 gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
 gpgcheck=1
-EOF
+EOF"
 
+	# Install cmake
 
-# Install cmake
+	# Install Python 2.7
+	sudo yum install -y python27
 
-# Install Python 2.7
-yum install -y python27
+	# Install GCC 6, but not for Fedora 25 
 
-# Install GCC 6, but not for Fedora 25 
+	export CC=gcc
+	export CXX=g++
 
-export CC=gcc
-export CXX=g++
-
-if [ "$RHEL_VERSION" -ne "25" ]; then
-  yum install -y centos-release-scl
-  yum install -y devtoolset-6-gcc*
-  export CC=/opt/rh/devtoolset-6/root/usr/bin/gcc
-  export CXX=/opt/rh/devtoolset-6/root/usr/bin/g++
-else
-
-cat << EOF > /etc/yum.repos.d/mariadb.repo
+	if [ "$RHEL_VERSION" -ne "25" ]; then
+		sudo yum install -y centos-release-scl
+		sudo yum install -y devtoolset-6-gcc*
+		export CC=/opt/rh/devtoolset-6/root/usr/bin/gcc
+		export CXX=/opt/rh/devtoolset-6/root/usr/bin/g++
+	else
+		sudo bash -c "cat << EOF > /etc/yum.repos.d/mariadb.repo
 [mariadb]
-name = MariaDB
-baseurl = http://yum.mariadb.org/10.1/fedora25-amd64
+name=MariaDB
+baseurl=http://yum.mariadb.org/10.1/fedora25-amd64
 gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
 gpgcheck=1
-EOF
-yum install -y libstdc++-static
+EOF"
 
-fi
+		sudo yum install -y libstdc++-static
+	fi
 
-yum -y install MariaDB-devel
-sudo ln -s /usr/lib64/mysql/libmysqlclient.a /usr/lib64/libmysqlclient.a
+	sudo yum -y install MariaDB-devel
+	sudo ln -s /usr/lib64/mysql/libmysqlclient.a /usr/lib64/libmysqlclient.a
 
-yum install -y cmake
-#scl enable devtoolset-6 bash
+	sudo yum install -y cmake
+	#scl enable devtoolset-6 bash
 
-
-# Use GCC 6 for builds
-
-
-
-# Install Clang from Subversion repo
-cd ..
-
+	echo "Return back to dir: $CWD"
+	cd $CWD
 }
 
 function make_packages {
 
-# Clean up after previous run
-rm -f ~/rpmbuild/RPMS/x86_64/clickhouse*
-rm -f ~/rpmbuild/SRPMS/clickhouse*
-rm -f rpm/*.zip
+	# Prepare dirs
+	mkdir -p "$RPMBUILD_DIR"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+	mkdir -p "$RPMSPEC_DIR"
 
-# Configure RPM build environment
-mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
-echo '%_topdir %(echo $HOME)/rpmbuild
+	# Clean up after previous run
+	rm -f "$RPMBUILD_DIR"/RPMS/x86_64/clickhouse*
+	rm -f "$RPMBUILD_DIR"/SRPMS/clickhouse*
+	rm -f "$RPMSPEC_DIR"/*.zip
+
+	# Configure RPM build environment
+	echo '%_topdir '"$RPMBUILD_DIR"'
 %_smp_mflags  -j'"$THREADS" > ~/.rpmmacros
 
-# Create RPM packages
-cd rpm
-sed -e s/@CH_VERSION@/$CH_VERSION/ -e s/@CH_TAG@/$CH_TAG/ clickhouse.spec.in > clickhouse.spec
-wget https://github.com/yandex/ClickHouse/archive/v$CH_VERSION-$CH_TAG.zip
-mv v$CH_VERSION-$CH_TAG.zip ClickHouse-$CH_VERSION-$CH_TAG.zip
-cp *.zip ~/rpmbuild/SOURCES
-rpmbuild -bs clickhouse.spec
-if [ "$RHEL_VERSION" -ne "25" ]; then
- CC=/opt/rh/devtoolset-6/root/usr/bin/gcc CXX=/opt/rh/devtoolset-6/root/usr/bin/g++ rpmbuild -bb clickhouse.spec
-else
- rpmbuild -bb clickhouse.spec
-fi
+	# Create RPM packages
+	cd "$RPMSPEC_DIR"
+	
+	# Create spec file
+	sed -e "s/@CH_VERSION@/$CH_VERSION/" -e "s/@CH_TAG@/$CH_TAG/" "$CWD_DIR/rpm/clickhouse.spec.in" > clickhouse.spec
+
+	# Prepase ClickHouse source archive
+	wget "https://github.com/yandex/ClickHouse/archive/v$CH_VERSION-$CH_TAG.zip"
+	mv "v$CH_VERSION-$CH_TAG.zip" "ClickHouse-$CH_VERSION-$CH_TAG.zip"
+	cp *.zip "$RPMBUILD_DIR/SOURCES"
+
+	rpmbuild -bs clickhouse.spec
+	if [ "$RHEL_VERSION" -ne "25" ]; then
+		CC=/opt/rh/devtoolset-6/root/usr/bin/gcc CXX=/opt/rh/devtoolset-6/root/usr/bin/g++ rpmbuild -bb clickhouse.spec
+	else
+		rpmbuild -bb clickhouse.spec
+	fi
+
+	echo "######################################################"
+	echo "######################################################"
+	echo "######################################################"
+	echo "######################################################"
+	echo "RPMs are available at"
+	echo "$RPMBUILD_DIR/RPMS/x86_64/"
+
+	ls -l "$RPMBUILD_DIR"/RPMS/x86_64/clickhouse*
+
+	echo "######################################################"
+	echo "Done for version v$CH_VERSION-$CH_TAG"
 }
 
 function publish_packages {
   mkdir /tmp/clickhouse-repo
   rm -rf /tmp/clickhouse-repo/*
-  cp ~/rpmbuild/RPMS/x86_64/clickhouse*.rpm /tmp/clickhouse-repo
+  cp $RPMBUILD_DIR/RPMS/x86_64/clickhouse*.rpm /tmp/clickhouse-repo
   if ! createrepo /tmp/clickhouse-repo; then exit 1; fi
 
   if ! scp -B -r /tmp/clickhouse-repo $REPO_USER@$REPO_SERVER:/tmp/clickhouse-repo; then exit 1; fi
@@ -177,3 +214,4 @@ fi
 if [ "$1" == "publish_only" ]; then
   publish_packages
 fi
+
