@@ -148,7 +148,7 @@ function prepare_dependencies {
 
 		mkdir gcc-build
 		cd gcc-build
-		../gcc-6.2.0/configure --enable-languages=c,c++
+		../gcc-6.2.0/configure --enable-languages=c,c++ --disable-multilib --enable-linker-build-id --with-default-libstdcxx-abi=gcc4-compatible
 		make -j $THREADS
 		sudo make install
 		hash gcc g++
