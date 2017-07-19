@@ -151,15 +151,17 @@ function prepare_dependencies {
 		../gcc-6.2.0/configure --enable-languages=c,c++ --disable-multilib --enable-linker-build-id --with-default-libstdcxx-abi=gcc4-compatible
 		make -j $THREADS
 		sudo make install
+
+		# /usr/local/bin/ should be in $PATH
 		hash gcc g++
 		gcc --version
+
 		sudo ln -s /usr/local/bin/gcc /usr/local/bin/gcc-6
 		sudo ln -s /usr/local/bin/g++ /usr/local/bin/g++-6
 		sudo ln -s /usr/local/bin/gcc /usr/local/bin/cc
 		sudo ln -s /usr/local/bin/g++ /usr/local/bin/c++
-		# /usr/local/bin/ should be in $PATH
-		export CC=/usr/local/bin/gcc
-		export CXX=/usr/local/bin/g++
+		export CC=/usr/local/bin/gcc-6
+		export CXX=/usr/local/bin/g++-6
 
 	else
 		# RH, FC
@@ -238,7 +240,7 @@ function make_packages {
 		CC=/opt/rh/devtoolset-6/root/usr/bin/gcc CXX=/opt/rh/devtoolset-6/root/usr/bin/g++ rpmbuild -bb clickhouse.spec
 	elif [ $RHEL_VERSION == 26 ]; then
 		# FC26
-		CC=/usr/local/bin/gcc CXX=/usr/local/bin/g++ rpmbuild -bb clickhouse.spec
+		CC=/usr/local/bin/gcc-6 CXX=/usr/local/bin/g++-6 rpmbuild -bb clickhouse.spec
 	else
 		rpmbuild -bb clickhouse.spec
 	fi
