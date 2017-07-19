@@ -103,7 +103,7 @@ function prepare_dependencies {
 	# Install Python 2.7
 	#
 
-	if [ $RHEL_VERSION == 25 ] || [ $RHEL_VERSION == 26]; then
+	if [ $RHEL_VERSION == 25 ] || [ $RHEL_VERSION == 26 ]; then
 		sudo yum install -y python2
 	else
 		sudo yum install -y python27
