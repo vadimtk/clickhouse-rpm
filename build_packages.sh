@@ -57,9 +57,10 @@ export PATH=${PATH/"/usr/local/bin:"/}:/usr/local/bin
 # Determine RHEL major version
 RHEL_VERSION=`rpm -qa --queryformat '%{VERSION}\n' '(redhat|sl|slf|centos|oraclelinux|goslinux)-release(|-server|-workstation|-client|-computenode)'`
 
-# check if we build for fedora
+# Check whether we build for fedora
 if [ -e "/etc/fedora-release" ]; then
-	RHEL_VERSION="25"
+	# Extract numbers from fedora-relase string, which is: "Fedora release 26 (Twenty Six)"
+	RHEL_VERSION=`cat /etc/fedora-release|sed 's/[^0-9]*//g'`
 fi
 
 
@@ -76,6 +77,10 @@ function prepare_dependencies {
 	echo "cd into $LIB_DIR"
 	cd "$LIB_DIR"
 
+	#
+	# Install development packages
+	#
+
 	if [ $RHEL_VERSION == 6 ]; then
 		DISTRO_PACKAGES="scons"
 	fi
@@ -84,13 +89,24 @@ function prepare_dependencies {
 		DISTRO_PACKAGES=""
 	fi
 
-	# Install development packages
-	if ! sudo yum -y install $DISTRO_PACKAGES make rpm-build redhat-rpm-config gcc-c++ readline-devel\
-		unixODBC-devel subversion python-devel git wget openssl-devel m4 createrepo glib2-devel\
+	if ! sudo yum -y install $DISTRO_PACKAGES \
+		make rpm-build redhat-rpm-config gcc-c++ readline-devel \
+		unixODBC-devel subversion python-devel git wget openssl-devel \
+		m4 createrepo glib2-devel \
 		libicu-devel zlib-devel libtool-ltdl-devel openssl-devel xz-devel
 	then 
 		echo "FAILED to install development packages"
 		exit 1
+	fi
+
+	#
+	# Install Python 2.7
+	#
+
+	if [ $RHEL_VERSION == 25 ] || [ $RHEL_VERSION == 26]; then
+		sudo yum install -y python2
+	else
+		sudo yum install -y python27
 	fi
 
 	if [ $RHEL_VERSION == 7 ]; then
@@ -103,31 +119,69 @@ function prepare_dependencies {
 		fi
 	fi
 
+	#
+	# Install GCC 6
+	# Fedora 25 already has gcc 6, no need to install
+	#
+
+	export CC=gcc
+	export CXX=g++
+
+	if [ $RHEL_VERSION == 6 ] || [ $RHEL_VERSION == 7 ]; then
+		# CentOS 6/7
+		# Install gcc 6 from compatibility packages
+		sudo yum install -y centos-release-scl
+		sudo yum install -y devtoolset-6-gcc*
+		export CC=/opt/rh/devtoolset-6/root/usr/bin/gcc
+		export CXX=/opt/rh/devtoolset-6/root/usr/bin/g++
+
+	elif [ $RHEL_VERSION == 26 ]; then
+		# FC26
+
+		# Download gcc from https://gcc.gnu.org/mirrors.html
+		wget ftp://ftp.fu-berlin.de/unix/languages/gcc/releases/gcc-6.2.0/gcc-6.2.0.tar.bz2
+		tar xf gcc-6.2.0.tar.bz2
+
+		cd gcc-6.2.0
+		./contrib/download_prerequisites
+		cd ..
+
+		mkdir gcc-build
+		cd gcc-build
+		../gcc-6.2.0/configure --enable-languages=c,c++
+		make -j $THREADS
+		sudo make install
+		hash gcc g++
+		gcc --version
+		sudo ln -s /usr/local/bin/gcc /usr/local/bin/gcc-6
+		sudo ln -s /usr/local/bin/g++ /usr/local/bin/g++-6
+		sudo ln -s /usr/local/bin/gcc /usr/local/bin/cc
+		sudo ln -s /usr/local/bin/g++ /usr/local/bin/c++
+		# /usr/local/bin/ should be in $PATH
+		export CC=/usr/local/bin/gcc
+		export CXX=/usr/local/bin/g++
+
+	else
+		# RH, FC
+		# Install static libs
+		sudo yum install -y libstdc++-static
+	fi
+
+	#
 	# Install MySQL client library from MariaDB
-	sudo bash -c "cat << EOF > /etc/yum.repos.d/mariadb.repo
+	#
+
+	if [ $RHEL_VERSION == 6 ] || [ $RHEL_VERSION == 7 ]; then
+		# CentOS 6/7
+		sudo bash -c "cat << EOF > /etc/yum.repos.d/mariadb.repo
 [mariadb]
 name=MariaDB
 baseurl=http://yum.mariadb.org/5.5/centos${RHEL_VERSION}-amd64
 gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
 gpgcheck=1
 EOF"
-
-	# Install cmake
-
-	# Install Python 2.7
-	sudo yum install -y python27
-
-	# Install GCC 6, but not for Fedora 25 
-
-	export CC=gcc
-	export CXX=g++
-
-	if [ "$RHEL_VERSION" -ne "25" ]; then
-		sudo yum install -y centos-release-scl
-		sudo yum install -y devtoolset-6-gcc*
-		export CC=/opt/rh/devtoolset-6/root/usr/bin/gcc
-		export CXX=/opt/rh/devtoolset-6/root/usr/bin/g++
 	else
+		# RH, FC
 		sudo bash -c "cat << EOF > /etc/yum.repos.d/mariadb.repo
 [mariadb]
 name=MariaDB
@@ -135,18 +189,20 @@ baseurl=http://yum.mariadb.org/10.1/fedora25-amd64
 gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
 gpgcheck=1
 EOF"
-
-		sudo yum install -y libstdc++-static
 	fi
 
 	sudo yum -y install MariaDB-devel
 	sudo ln -s /usr/lib64/mysql/libmysqlclient.a /usr/lib64/libmysqlclient.a
 
+	#
+	# Install cmake
+	#
+
 	sudo yum install -y cmake
 	#scl enable devtoolset-6 bash
 
-	echo "Return back to dir: $CWD"
-	cd $CWD
+	echo "Return back to dir: $CWD_DIR"
+	cd $CWD_DIR
 }
 
 function make_packages {
@@ -167,7 +223,7 @@ function make_packages {
 	# Create RPM packages
 	cd "$RPMSPEC_DIR"
 	
-	# Create spec file
+	# Create spec file from template
 	sed -e "s/@CH_VERSION@/$CH_VERSION/" -e "s/@CH_TAG@/$CH_TAG/" "$CWD_DIR/rpm/clickhouse.spec.in" > clickhouse.spec
 
 	# Prepase ClickHouse source archive
@@ -175,9 +231,14 @@ function make_packages {
 	mv "v$CH_VERSION-$CH_TAG.zip" "ClickHouse-$CH_VERSION-$CH_TAG.zip"
 	cp *.zip "$RPMBUILD_DIR/SOURCES"
 
+	# build RPM
 	rpmbuild -bs clickhouse.spec
-	if [ "$RHEL_VERSION" -ne "25" ]; then
+	if [ $RHEL_VERSION == 6 ] || [ $RHEL_VERSION == 7 ]; then
+		# CentOS 6/7
 		CC=/opt/rh/devtoolset-6/root/usr/bin/gcc CXX=/opt/rh/devtoolset-6/root/usr/bin/g++ rpmbuild -bb clickhouse.spec
+	elif [ $RHEL_VERSION == 26 ]; then
+		# FC26
+		CC=/usr/local/bin/gcc CXX=/usr/local/bin/g++ rpmbuild -bb clickhouse.spec
 	else
 		rpmbuild -bb clickhouse.spec
 	fi
@@ -186,7 +247,7 @@ function make_packages {
 	echo "######################################################"
 	echo "######################################################"
 	echo "######################################################"
-	echo "RPMs are available at"
+	echo "Looking for RPMs at"
 	echo "$RPMBUILD_DIR/RPMS/x86_64/"
 
 	ls -l "$RPMBUILD_DIR"/RPMS/x86_64/clickhouse*
