@@ -63,8 +63,10 @@ if [ -e "/etc/fedora-release" ]; then
 	RHEL_VERSION=`cat /etc/fedora-release|sed 's/[^0-9]*//g'`
 fi
 
-
-function prepare_dependencies {
+##
+## Install all required components before building RPMs
+##
+function install_dependencies {
 
 	if [ ! -d "$LIB_DIR" ]; then
 		echo "Make lib dir: $LIB_DIR"
@@ -90,18 +92,21 @@ function prepare_dependencies {
 	fi
 
 	if ! sudo yum -y install $DISTRO_PACKAGES \
-		make rpm-build redhat-rpm-config gcc-c++ readline-devel \
-		unixODBC-devel subversion python-devel git wget openssl-devel \
-		m4 createrepo glib2-devel \
-		libicu-devel zlib-devel libtool-ltdl-devel openssl-devel xz-devel
+		m4 rpm-build redhat-rpm-config createrepo \
+		make gcc-c++ \
+		wget \
+		subversion git \
+		readline-devel glib2-devel unixODBC-devel \
+		python-devel openssl-devel libicu-devel \
+		zlib-devel libtool-ltdl-devel xz-devel
 	then 
 		echo "FAILED to install development packages"
 		exit 1
 	fi
 
-	#
-	# Install Python 2.7
-	#
+	echo "##########################"
+	echo "### Install Python 2.7 ###"
+	echo "##########################"
 
 	if [ $RHEL_VERSION == 25 ] || [ $RHEL_VERSION == 26 ]; then
 		sudo yum install -y python2
@@ -119,10 +124,9 @@ function prepare_dependencies {
 		fi
 	fi
 
-	#
-	# Install GCC 6
-	# Fedora 25 already has gcc 6, no need to install
-	#
+	echo "#####################"
+	echo "### Install GCC 6 ###"
+	echo "#####################"
 
 	export CC=gcc
 	export CXX=g++
@@ -164,14 +168,14 @@ function prepare_dependencies {
 		export CXX=/usr/local/bin/g++-6
 
 	else
-		# RH, FC
+		# Fedora 25 already has gcc 6, no need to install
 		# Install static libs
 		sudo yum install -y libstdc++-static
 	fi
 
-	#
-	# Install MySQL client library from MariaDB
-	#
+	echo "#################################################"
+	echo "### Install MySQL client library from MariaDB ###"
+	echo "#################################################"
 
 	if [ $RHEL_VERSION == 6 ] || [ $RHEL_VERSION == 7 ]; then
 		# CentOS 6/7
@@ -196,9 +200,9 @@ EOF"
 	sudo yum -y install MariaDB-devel
 	sudo ln -s /usr/lib64/mysql/libmysqlclient.a /usr/lib64/libmysqlclient.a
 
-	#
-	# Install cmake
-	#
+	echo "#####################"
+	echo "### Install cmake ###"
+	echo "#####################"
 
 	sudo yum install -y cmake
 	#scl enable devtoolset-6 bash
@@ -207,7 +211,10 @@ EOF"
 	cd $CWD_DIR
 }
 
-function make_packages {
+##
+## Build RPMs
+##
+function build_packages {
 
 	# Prepare dirs
 	mkdir -p "$RPMBUILD_DIR"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
@@ -248,14 +255,15 @@ function make_packages {
 	echo "######################################################"
 	echo "######################################################"
 	echo "######################################################"
-	echo "######################################################"
 	echo "Looking for RPMs at"
-	echo "$RPMBUILD_DIR/RPMS/x86_64/"
+	echo "$RPMBUILD_DIR/RPMS/x86_64/clickhouse*"
 
 	ls -l "$RPMBUILD_DIR"/RPMS/x86_64/clickhouse*
 
 	echo "######################################################"
-	echo "Done for version v$CH_VERSION-$CH_TAG"
+	echo "######################################################"
+	echo "######################################################"
+	echo "Done. Version v$CH_VERSION-$CH_TAG"
 }
 
 function publish_packages {
@@ -269,10 +277,10 @@ function publish_packages {
 }
 
 if [[ "$1" != "publish_only"  && "$1" != "build_only" ]]; then
-  prepare_dependencies
+  install_dependencies
 fi
 if [ "$1" != "publish_only" ]; then
-  make_packages
+  build_packages
 fi
 if [ "$1" == "publish_only" ]; then
   publish_packages
