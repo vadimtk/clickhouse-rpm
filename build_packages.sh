@@ -67,6 +67,8 @@ fi
 ## Install all required components before building RPMs
 ##
 function install_dependencies {
+	
+	echo "Prepare lib dir: $LIB_DIR"
 
 	if [ ! -d "$LIB_DIR" ]; then
 		echo "Make lib dir: $LIB_DIR"
@@ -79,9 +81,9 @@ function install_dependencies {
 	echo "cd into $LIB_DIR"
 	cd "$LIB_DIR"
 
-	#
-	# Install development packages
-	#
+	echo "####################################"
+	echo "### Install development packages ###"
+	echo "####################################"
 
 	if [ $RHEL_VERSION == 6 ]; then
 		DISTRO_PACKAGES="scons"
