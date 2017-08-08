@@ -218,26 +218,28 @@ EOF"
 ##
 function build_packages {
 
-	# Prepare dirs
+	echo "Prepare dirs"
 	mkdir -p "$RPMBUILD_DIR"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
 	mkdir -p "$RPMSPEC_DIR"
 
-	# Clean up after previous run
+	echo "Clean up after previous run"
 	rm -f "$RPMBUILD_DIR"/RPMS/x86_64/clickhouse*
 	rm -f "$RPMBUILD_DIR"/SRPMS/clickhouse*
 	rm -f "$RPMSPEC_DIR"/*.zip
 
-	# Configure RPM build environment
+	echo "Configure RPM build environment"
 	echo '%_topdir '"$RPMBUILD_DIR"'
 %_smp_mflags  -j'"$THREADS" > ~/.rpmmacros
 
-	# Create RPM packages
+	echo "###########################"
+	echo "### Create RPM packages ###"
+	echo "###########################"
 	cd "$RPMSPEC_DIR"
 	
 	# Create spec file from template
 	sed -e "s/@CH_VERSION@/$CH_VERSION/" -e "s/@CH_TAG@/$CH_TAG/" "$CWD_DIR/rpm/clickhouse.spec.in" > clickhouse.spec
 
-	# Prepase ClickHouse source archive
+	# Prepare ClickHouse source archive
 	wget "https://github.com/yandex/ClickHouse/archive/v$CH_VERSION-$CH_TAG.zip"
 	mv "v$CH_VERSION-$CH_TAG.zip" "ClickHouse-$CH_VERSION-$CH_TAG.zip"
 	cp *.zip "$RPMBUILD_DIR/SOURCES"
