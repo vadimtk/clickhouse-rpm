@@ -54,19 +54,88 @@ export THREADS=$(grep -c ^processor /proc/cpuinfo)
 # Build most libraries using default GCC
 export PATH=${PATH/"/usr/local/bin:"/}:/usr/local/bin
 
-# Determine RHEL major version
-RHEL_VERSION=`rpm -qa --queryformat '%{VERSION}\n' '(redhat|sl|slf|centos|oraclelinux|goslinux)-release(|-server|-workstation|-client|-computenode)'`
+function os_unsupported()
+{
+	echo "This OS is not supported. However, you can set 'OS' and 'DISTR' ENV vars manually."
+	echo "Can't continue, exit"
 
-# Check whether we build for fedora
-if [ -e "/etc/fedora-release" ]; then
-	# Extract numbers from fedora-relase string, which is: "Fedora release 26 (Twenty Six)"
-	RHEL_VERSION=`cat /etc/fedora-release|sed 's/[^0-9]*//g'`
-fi
+	exit 1
+}
+
+function os_detect()
+{
+	if [ -n "$OS" ] && [ -n "$DISTR_MAJOR" ]; then
+		# looks like all is explicitly set
+		echo "OS specified: $OS $DISTR_MAJOR $DISTR_MINOR"
+		return
+	fi
+
+	# OS or DIST are NOT specified
+	# let's try to figure out what exactly are we running on
+
+	if [ -e /etc/os-release ]; then
+		# nice, can simply source OS specification
+		. /etc/os-release
+			
+		# OS=linuxmint
+		OS=${ID}
+
+		# need to parse "18.2"
+		# DISTR_MAJOR=18
+		# DISTR_MINOR=2
+		DISTR_MAJOR=`echo ${VERSION_ID} | awk -F '.' '{ print $1 }'`
+		DISTR_MINOR=`echo ${VERSION_ID} | awk -F '.' '{ print $2 }'`
+
+	elif command -v lsb_release > /dev/null; then
+		# something like Ubuntu
+
+		# need to parse "Distributor ID:	LinuxMint"
+		# OS=linuxmint
+		OS=`lsb_release -i | cut -f2 | awk '{ print tolower($1) }'`
+
+		# need to parse "Release:	18.2"
+		# DISTR_MAJOR=18
+		# DISTR_MINOR=2
+		DISTR_MAJOR=`lsb_release -r | cut -f2 | awk -F '.' '{ print $1 }'`
+		DISTR_MINOR=`lsb_release -r | cut -f2 | awk -F '.' '{ print $2 }'`
+
+	elif [ -e /etc/fedora-release ]; then
+		OS='fedora'
+
+		# need to parse "Fedora release 26 (Twenty Six)"
+		# DISTR_MAJOR=26
+		# DISTR_MINOR=""
+		DISTR_MAJOR=`cut -f3 --delimiter=' ' /etc/fedora-release`
+		DISTR_MINOR=""
+
+	elif [ -e /etc/redhat-release ]; then
+		# need to parse "CentOS Linux release 7.3.1611 (Core)"
+		# OS=centos
+		OS=`cat /etc/redhat-release  | awk '{ print tolower($1) }'`
+
+		# need to parse "CentOS Linux release 7.3.1611 (Core)"
+		# DISTR_MAJOR=7
+		# DISTR_MINOR=3
+       		DISTR_MAJOR=`cat /etc/redhat-release | awk '{ print $4 }' | awk -F '.' '{ print $1 }'`
+       		DISTR_MINOR=`cat /etc/redhat-release | awk '{ print $4 }' | awk -F '.' '{ print $2 }'`
+
+	else
+		# do not know this OS
+		os_unsupported
+	fi
+
+	echo "OS detected: $OS $DISTR_MAJOR $DISTR_MINOR"
+}
+
 
 ##
 ## Install all required components before building RPMs
 ##
-function install_dependencies {
+function install_dependencies()
+{
+	echo "#############################"
+	echo "### Install dependencies  ###"
+	echo "#############################"
 	
 	echo "Prepare lib dir: $LIB_DIR"
 
@@ -85,12 +154,9 @@ function install_dependencies {
 	echo "### Install development packages ###"
 	echo "####################################"
 
-	if [ $RHEL_VERSION == 6 ]; then
+	DISTRO_PACKAGES=""
+	if [ $DISTR_MAJOR == 6 ]; then
 		DISTRO_PACKAGES="scons"
-	fi
-
-	if [ $RHEL_VERSION == 7 ]; then
-		DISTRO_PACKAGES=""
 	fi
 
 	if ! sudo yum -y install $DISTRO_PACKAGES \
@@ -110,13 +176,13 @@ function install_dependencies {
 	echo "### Install Python 2.7 ###"
 	echo "##########################"
 
-	if [ $RHEL_VERSION == 25 ] || [ $RHEL_VERSION == 26 ]; then
+	if [ $DISTR_MAJOR == 25 ] || [ $DISTR_MAJOR == 26 ]; then
 		sudo yum install -y python2
 	else
 		sudo yum install -y python27
 	fi
 
-	if [ $RHEL_VERSION == 7 ]; then
+	if [ $DISTR_MAJOR == 7 ]; then
 		# Connect EPEL repository for CentOS 7 (for scons)
 		wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 		sudo yum -y --nogpgcheck install epel-release-latest-7.noarch.rpm
@@ -133,7 +199,7 @@ function install_dependencies {
 	export CC=gcc
 	export CXX=g++
 
-	if [ $RHEL_VERSION == 6 ] || [ $RHEL_VERSION == 7 ]; then
+	if [ $DISTR_MAJOR == 6 ] || [ $DISTR_MAJOR == 7 ]; then
 		# CentOS 6/7
 		# Install gcc 6 from compatibility packages
 		sudo yum install -y centos-release-scl
@@ -141,7 +207,7 @@ function install_dependencies {
 		export CC=/opt/rh/devtoolset-6/root/usr/bin/gcc
 		export CXX=/opt/rh/devtoolset-6/root/usr/bin/g++
 
-	elif [ $RHEL_VERSION == 26 ]; then
+	elif [ $DISTR_MAJOR == 26 ]; then
 		# FC26
 
 		# Download gcc from https://gcc.gnu.org/mirrors.html
@@ -179,21 +245,21 @@ function install_dependencies {
 	echo "### Install MySQL client library from MariaDB ###"
 	echo "#################################################"
 
-	if [ $RHEL_VERSION == 6 ] || [ $RHEL_VERSION == 7 ]; then
+	if [ $DISTR_MAJOR == 6 ] || [ $DISTR_MAJOR == 7 ]; then
 		# CentOS 6/7
 		sudo bash -c "cat << EOF > /etc/yum.repos.d/mariadb.repo
 [mariadb]
 name=MariaDB
-baseurl=http://yum.mariadb.org/5.5/centos${RHEL_VERSION}-amd64
+baseurl=http://yum.mariadb.org/5.5/centos${DISTR_MAJOR}-amd64
 gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
 gpgcheck=1
 EOF"
-	else
+	elif [ $DISTR_MAJOR == 25 ] || [ $DISTR_MAJOR == 26 ]; then
 		# RH, FC
 		sudo bash -c "cat << EOF > /etc/yum.repos.d/mariadb.repo
 [mariadb]
 name=MariaDB
-baseurl=http://yum.mariadb.org/10.1/fedora25-amd64
+baseurl=http://yum.mariadb.org/10.2/fedora$DISTR_MAJOR-amd64
 gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
 gpgcheck=1
 EOF"
@@ -216,7 +282,8 @@ EOF"
 ##
 ## Build RPMs
 ##
-function build_packages {
+function build_packages()
+{
 
 	echo "Prepare dirs"
 	mkdir -p "$RPMBUILD_DIR"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
@@ -246,13 +313,14 @@ function build_packages {
 
 	# build RPM
 	rpmbuild -bs clickhouse.spec
-	if [ $RHEL_VERSION == 6 ] || [ $RHEL_VERSION == 7 ]; then
+	if [ $DISTR_MAJOR == 6 ] || [ $DISTR_MAJOR == 7 ]; then
 		# CentOS 6/7
 		CC=/opt/rh/devtoolset-6/root/usr/bin/gcc CXX=/opt/rh/devtoolset-6/root/usr/bin/g++ rpmbuild -bb clickhouse.spec
-	elif [ $RHEL_VERSION == 26 ]; then
+	elif [ $DISTR_MAJOR == 26 ]; then
 		# FC26
 		CC=/usr/local/bin/gcc-6 CXX=/usr/local/bin/g++-6 rpmbuild -bb clickhouse.spec
 	else
+		# FC25
 		rpmbuild -bb clickhouse.spec
 	fi
 
@@ -277,8 +345,10 @@ function publish_packages {
   if ! createrepo /tmp/clickhouse-repo; then exit 1; fi
 
   if ! scp -B -r /tmp/clickhouse-repo $REPO_USER@$REPO_SERVER:/tmp/clickhouse-repo; then exit 1; fi
-  if ! ssh $REPO_USER@$REPO_SERVER "rm -rf $REPO_ROOT/$CH_TAG/el$RHEL_VERSION && mv /tmp/clickhouse-repo $REPO_ROOT/$CH_TAG/el$RHEL_VERSION"; then exit 1; fi
+  if ! ssh $REPO_USER@$REPO_SERVER "rm -rf $REPO_ROOT/$CH_TAG/el$DISTR_MAJOR && mv /tmp/clickhouse-repo $REPO_ROOT/$CH_TAG/el$DISTR_MAJOR"; then exit 1; fi
 }
+
+os_detect
 
 if [[ "$1" != "publish_only"  && "$1" != "build_only" ]]; then
   install_dependencies
