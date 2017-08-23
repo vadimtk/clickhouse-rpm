@@ -247,25 +247,23 @@ function install_dependencies()
 	echo "### Install MySQL client library from MariaDB ###"
 	echo "#################################################"
 
+	# which repo should be used
 	if [ $DISTR_MAJOR == 6 ] || [ $DISTR_MAJOR == 7 ]; then
 		# CentOS 6/7
-		sudo bash -c "cat << EOF > /etc/yum.repos.d/mariadb.repo
-[mariadb]
-name=MariaDB
-baseurl=http://yum.mariadb.org/5.5/centos${DISTR_MAJOR}-amd64
-gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
-gpgcheck=1
-EOF"
+		MARIADB_REPO_URL="http://yum.mariadb.org/5.5/centos${DISTR_MAJOR}-amd64"
 	elif [ $DISTR_MAJOR == 25 ] || [ $DISTR_MAJOR == 26 ]; then
 		# RH, FC
-		sudo bash -c "cat << EOF > /etc/yum.repos.d/mariadb.repo
+		MARIADB_REPO_URL="http://yum.mariadb.org/10.1/fedora${DISTR_MAJOR}-amd64"
+	fi
+
+	# create repo file
+	sudo bash -c "cat << EOF > /etc/yum.repos.d/mariadb.repo
 [mariadb]
 name=MariaDB
-baseurl=http://yum.mariadb.org/10.2/fedora${DISTR_MAJOR}-amd64
+baseurl=${MARIADB_REPO_URL}
 gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
 gpgcheck=1
 EOF"
-	fi
 
 	sudo yum -y install MariaDB-devel
 	sudo ln -s /usr/lib64/mysql/libmysqlclient.a /usr/lib64/libmysqlclient.a
