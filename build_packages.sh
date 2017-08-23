@@ -178,8 +178,10 @@ function install_dependencies()
 
 	if [ $DISTR_MAJOR == 25 ] || [ $DISTR_MAJOR == 26 ]; then
 		sudo yum install -y python2
-	else
+	elif [ $DISTR_MAJOR == 6 ]; then
 		sudo yum install -y python27
+	else
+		sudo yum install -y python
 	fi
 
 	if [ $DISTR_MAJOR == 7 ]; then
