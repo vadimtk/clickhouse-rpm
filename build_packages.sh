@@ -261,7 +261,7 @@ EOF"
 		sudo bash -c "cat << EOF > /etc/yum.repos.d/mariadb.repo
 [mariadb]
 name=MariaDB
-baseurl=http://yum.mariadb.org/10.2/fedora$DISTR_MAJOR-amd64
+baseurl=http://yum.mariadb.org/10.2/fedora${DISTR_MAJOR}-amd64
 gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
 gpgcheck=1
 EOF"
