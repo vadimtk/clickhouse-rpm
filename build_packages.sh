@@ -62,6 +62,21 @@ function os_unsupported()
 	exit 1
 }
 
+function os_yum_based()
+{
+	[ "$OS" == "centos" ] || [ "$OS" == "fedora" ]
+}
+
+function os_apt_based()
+{
+	[ "$OS" == "ubuntu" ] || [ "$OS" == "linuxmint" ]
+}
+
+function os_rpm_based()
+{
+	os_yum_based
+}
+
 function os_detect()
 {
 	if [ -n "$OS" ] && [ -n "$DISTR_MAJOR" ]; then
@@ -349,6 +364,13 @@ function publish_packages {
 }
 
 os_detect
+
+if ! os_rpm_based; then
+	echo "We need RPM-based OS in order to build RPM packages."
+	exit 1
+else
+	echo "RPM-based OS detected, continue"
+fi
 
 if [[ "$1" != "publish_only"  && "$1" != "build_only" ]]; then
   install_dependencies
