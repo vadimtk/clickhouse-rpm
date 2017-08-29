@@ -9,7 +9,9 @@
 #
 # Tested on:
 #  - CentOS 6.8
+#  - CentOS 6.9
 #  - CentOS 7.2
+#  - CentOS 7.3
 #  - Fedora 25
 #
 # Copyright (C) 2016 Red Soft LLC
@@ -54,6 +56,10 @@ export THREADS=$(grep -c ^processor /proc/cpuinfo)
 # Build most libraries using default GCC
 export PATH=${PATH/"/usr/local/bin:"/}:/usr/local/bin
 
+
+##
+## Print error message and exit with exit code 1
+##
 function os_unsupported()
 {
 	echo "This OS is not supported. However, you can set 'OS' and 'DISTR' ENV vars manually."
@@ -62,21 +68,36 @@ function os_unsupported()
 	exit 1
 }
 
+##
+## is OS YUM-based?
+##
 function os_yum_based()
 {
 	[ "$OS" == "centos" ] || [ "$OS" == "fedora" ]
 }
 
+##
+## is OS APT-based?
+##
 function os_apt_based()
 {
 	[ "$OS" == "ubuntu" ] || [ "$OS" == "linuxmint" ]
 }
 
+##
+## is OS RPM-based?
+##
 function os_rpm_based()
 {
 	os_yum_based
 }
 
+##
+## Detect OS. Results are written into
+## $OS - string lowercased codename ex: centos, linuxmint
+## $DISTR_MAJOR - int major version ex: 7 for CentOS 7.3, 18 for Linux Mint 18
+## $DISTR_MINOR - int minor version ex: 3 for centos 7.3, Empty "" for Linux Mint 18
+##
 function os_detect()
 {
 	if [ -n "$OS" ] && [ -n "$DISTR_MAJOR" ]; then
