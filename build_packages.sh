@@ -30,10 +30,11 @@
 # limitations under the License.
 
 # Git version of ClickHouse that we package
-CH_VERSION="1.1.54276"
+CH_VERSION="1.1.54284"
 
 # Git tag marker (stable/testing)
-CH_TAG="stable"
+#CH_TAG="stable"
+CH_TAG="testing"
 
 # Current work dir
 CWD_DIR=`pwd`
@@ -134,6 +135,15 @@ function os_detect()
 		# DISTR_MINOR=2
 		DISTR_MAJOR=`lsb_release -r | cut -f2 | awk -F '.' '{ print $1 }'`
 		DISTR_MINOR=`lsb_release -r | cut -f2 | awk -F '.' '{ print $2 }'`
+
+	elif [ -e /etc/centos-release ]; then
+		OS='centos'
+
+		# need to parse "CentOS release 6.9 (Final)"
+		# DISTR_MAJOR=6
+		# DISTR_MINOR=9
+       		DISTR_MAJOR=`cat /etc/centos-release | awk '{ print $3 }' | awk -F '.' '{ print $1 }'`
+       		DISTR_MINOR=`cat /etc/centos-release | awk '{ print $3 }' | awk -F '.' '{ print $2 }'`
 
 	elif [ -e /etc/fedora-release ]; then
 		OS='fedora'
