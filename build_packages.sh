@@ -136,6 +136,15 @@ function os_detect()
 		DISTR_MAJOR=`lsb_release -r | cut -f2 | awk -F '.' '{ print $1 }'`
 		DISTR_MINOR=`lsb_release -r | cut -f2 | awk -F '.' '{ print $2 }'`
 
+	elif [ -e /etc/centos-release ]; then
+		OS='centos'
+
+		# need to parse "CentOS release 6.9 (Final)"
+		# DISTR_MAJOR=6
+		# DISTR_MINOR=9
+       		DISTR_MAJOR=`cat /etc/centos-release | awk '{ print $3 }' | awk -F '.' '{ print $1 }'`
+       		DISTR_MINOR=`cat /etc/centos-release | awk '{ print $3 }' | awk -F '.' '{ print $2 }'`
+
 	elif [ -e /etc/fedora-release ]; then
 		OS='fedora'
 
