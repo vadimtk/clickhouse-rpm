@@ -255,36 +255,9 @@ function install_dependencies()
 		export CC=/opt/rh/devtoolset-6/root/usr/bin/gcc
 		export CXX=/opt/rh/devtoolset-6/root/usr/bin/g++
 
-	elif [ $DISTR_MAJOR == 26 ]; then
-		# FC26
-
-		# Download gcc from https://gcc.gnu.org/mirrors.html
-		wget ftp://ftp.fu-berlin.de/unix/languages/gcc/releases/gcc-6.2.0/gcc-6.2.0.tar.bz2
-		tar xf gcc-6.2.0.tar.bz2
-
-		cd gcc-6.2.0
-		./contrib/download_prerequisites
-		cd ..
-
-		mkdir gcc-build
-		cd gcc-build
-		../gcc-6.2.0/configure --enable-languages=c,c++ --disable-multilib --enable-linker-build-id --with-default-libstdcxx-abi=gcc4-compatible
-		make -j $THREADS
-		sudo make install
-
-		# /usr/local/bin/ should be in $PATH
-		hash gcc g++
-		gcc --version
-
-		sudo ln -s /usr/local/bin/gcc /usr/local/bin/gcc-6
-		sudo ln -s /usr/local/bin/g++ /usr/local/bin/g++-6
-		sudo ln -s /usr/local/bin/gcc /usr/local/bin/cc
-		sudo ln -s /usr/local/bin/g++ /usr/local/bin/c++
-		export CC=/usr/local/bin/gcc-6
-		export CXX=/usr/local/bin/g++-6
-
-	else
+	elif [ $DISTR_MAJOR == 25 ] || [ $DISTR_MAJOR == 26 ]; then
 		# Fedora 25 already has gcc 6, no need to install
+		# Fedora 26 already has gcc 7, no need to install
 		# Install static libs
 		sudo yum install -y libstdc++-static
 	fi
@@ -298,8 +271,9 @@ function install_dependencies()
 		# CentOS 6/7
 		MARIADB_REPO_URL="http://yum.mariadb.org/5.5/centos${DISTR_MAJOR}-amd64"
 	elif [ $DISTR_MAJOR == 25 ] || [ $DISTR_MAJOR == 26 ]; then
-		# RH, FC
-		MARIADB_REPO_URL="http://yum.mariadb.org/10.1/fedora${DISTR_MAJOR}-amd64"
+		# RH, Fedora
+#		MARIADB_REPO_URL="http://yum.mariadb.org/10.1/fedora${DISTR_MAJOR}-amd64"
+		MARIADB_REPO_URL="http://yum.mariadb.org/10.1/fedora25-amd64"
 	fi
 
 	# create repo file
@@ -362,11 +336,9 @@ function build_packages()
 	if [ $DISTR_MAJOR == 6 ] || [ $DISTR_MAJOR == 7 ]; then
 		# CentOS 6/7
 		CC=/opt/rh/devtoolset-6/root/usr/bin/gcc CXX=/opt/rh/devtoolset-6/root/usr/bin/g++ rpmbuild -bb clickhouse.spec
-	elif [ $DISTR_MAJOR == 26 ]; then
-		# FC26
-		CC=/usr/local/bin/gcc-6 CXX=/usr/local/bin/g++-6 rpmbuild -bb clickhouse.spec
 	else
-		# FC25
+		# Fedora 25
+		# Fedora 26
 		rpmbuild -bb clickhouse.spec
 	fi
 
