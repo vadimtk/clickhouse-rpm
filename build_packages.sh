@@ -267,13 +267,10 @@ function install_dependencies()
 	echo "#################################################"
 
 	# which repo should be used
-	if [ $DISTR_MAJOR == 6 ] || [ $DISTR_MAJOR == 7 ]; then
-		# CentOS 6/7
-		MARIADB_REPO_URL="http://yum.mariadb.org/5.5/centos${DISTR_MAJOR}-amd64"
-	elif [ $DISTR_MAJOR == 25 ] || [ $DISTR_MAJOR == 26 ]; then
-		# Fedora
-		MARIADB_REPO_URL="http://yum.mariadb.org/10.2/fedora${DISTR_MAJOR}-amd64"
-	fi
+	# http://yum.mariadb.org/10.2/fedora26-amd64"
+	# http://yum.mariadb.org/10.2/centos6-amd64"
+	# http://yum.mariadb.org/10.2/centos7-amd64"
+	MARIADB_REPO_URL="http://yum.mariadb.org/10.2/${OS}${DISTR_MAJOR}-amd64"
 
 	# create repo file
 	sudo bash -c "cat << EOF > /etc/yum.repos.d/mariadb.repo
@@ -284,8 +281,8 @@ gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
 gpgcheck=1
 EOF"
 
-	sudo yum -y install MariaDB-devel
-	sudo ln -s /usr/lib64/mysql/libmysqlclient.a /usr/lib64/libmysqlclient.a
+	sudo yum install -y MariaDB-devel
+	sudo yum install -y MariaDB-shared
 
 	echo "#####################"
 	echo "### Install cmake ###"
