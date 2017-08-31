@@ -271,9 +271,8 @@ function install_dependencies()
 		# CentOS 6/7
 		MARIADB_REPO_URL="http://yum.mariadb.org/5.5/centos${DISTR_MAJOR}-amd64"
 	elif [ $DISTR_MAJOR == 25 ] || [ $DISTR_MAJOR == 26 ]; then
-		# RH, Fedora
-#		MARIADB_REPO_URL="http://yum.mariadb.org/10.1/fedora${DISTR_MAJOR}-amd64"
-		MARIADB_REPO_URL="http://yum.mariadb.org/10.1/fedora25-amd64"
+		# Fedora
+		MARIADB_REPO_URL="http://yum.mariadb.org/10.2/fedora${DISTR_MAJOR}-amd64"
 	fi
 
 	# create repo file
