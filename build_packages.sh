@@ -281,8 +281,7 @@ gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
 gpgcheck=1
 EOF"
 
-	sudo yum install -y MariaDB-devel
-	sudo yum install -y MariaDB-shared
+	sudo yum install -y MariaDB-devel MariaDB-shared
 
 	echo "#####################"
 	echo "### Install cmake ###"
