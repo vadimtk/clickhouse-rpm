@@ -40,9 +40,6 @@ CWD_DIR=`pwd`
 # Where runtime data would be kept
 RUNTIME_DIR="$CWD_DIR/runtime"
 
-# Where additional packages would be kept
-LIB_DIR="$RUNTIME_DIR/lib"
-
 # Where RPMs would be built
 RPMBUILD_DIR="$RUNTIME_DIR/rpmbuild"
 
@@ -181,19 +178,6 @@ function install_dependencies()
 	echo "### Install dependencies  ###"
 	echo "#############################"
 	
-	echo "Prepare lib dir: $LIB_DIR"
-
-	if [ ! -d "$LIB_DIR" ]; then
-		echo "Make lib dir: $LIB_DIR"
-		mkdir -p "$LIB_DIR"
-	fi
-
-	echo "Clean lib dir: $LIB_DIR"
-	rm -rf "$LIB_DIR/"*
-
-	echo "cd into $LIB_DIR"
-	cd "$LIB_DIR"
-
 	echo "####################################"
 	echo "### Install development packages ###"
 	echo "####################################"
@@ -230,19 +214,22 @@ function install_dependencies()
 	# and install Python
 	sudo yum install -y $PYTHON_PACKAGE
 
-	if [ $DISTR_MAJOR == 7 ]; then
-		# Connect EPEL repository for CentOS 7 (for scons)
-		wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-		sudo yum -y --nogpgcheck install epel-release-latest-7.noarch.rpm
-		if ! sudo yum -y install scons; then
-			echo "FAILED to install scons"
-			exit 1; 
-		fi
-	fi
-
 	echo "###################"
 	echo "### Install GCC ###"
 	echo "###################"
+
+	if [ $DISTR_MAJOR == 7 ]; then
+		# Connect EPEL repository for CentOS 7 (for scons)
+		if ! sudo yum -y --nogpgcheck install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm; then
+			echo "FAILED to install epel"
+			exit 1
+		fi
+
+		if ! sudo yum -y install scons; then
+			echo "FAILED to install scons"
+			exit 1
+		fi
+	fi
 
 	export CC=gcc
 	export CXX=g++
