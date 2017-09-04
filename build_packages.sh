@@ -331,7 +331,7 @@ function build_packages()
 	echo "Clean up after previous run"
 	rm -f "$RPMBUILD_DIR"/RPMS/x86_64/clickhouse*
 	rm -f "$RPMBUILD_DIR"/SRPMS/clickhouse*
-	rm -f "$RPMSPEC_DIR"/*.zip
+	rm -f "$RPMSPEC_DIR"/*.spec
 
 	echo "Configure RPM build environment"
 	echo '%_topdir '"$RPMBUILD_DIR"'
@@ -349,13 +349,13 @@ function build_packages()
 	sed \
 		-e "s/@CH_VERSION@/$CH_VERSION/" \
 		-e "s/@CH_TAG@/$CH_TAG/" \
-		"$CWD_DIR/rpm/clickhouse.spec.in" > clickhouse.spec
+		"$CWD_DIR/clickhouse.spec.in" > "$RPMSPEC_DIR/clickhouse.spec"
 
 	# Build RPMs
-	echo "rpmbuild v$CH_VERSION-$CH_TAG"
-	rpmbuild -bs clickhouse.spec
-	rpmbuild -bb clickhouse.spec
-	echo "rpmbuild completed v$CH_VERSION-$CH_TAG"
+	echo "rpmbuild $CH_VERSION-$CH_TAG"
+	rpmbuild -bs "$RPMSPEC_DIR/clickhouse.spec"
+	rpmbuild -bb "$RPMSPEC_DIR/clickhouse.spec"
+	echo "rpmbuild completed $CH_VERSION-$CH_TAG"
 
 	# Display results
 	list_RPMs
