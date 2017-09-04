@@ -296,6 +296,30 @@ EOF"
 	cd $CWD_DIR
 }
 
+function list_RPMs()
+{
+	echo "######################################################"
+	echo "### Looking for RPMs at                            ###"
+	echo "### $RPMBUILD_DIR/RPMS/x86_64/clickhouse*"
+	echo "######################################################"
+
+	ls -l "$RPMBUILD_DIR"/RPMS/x86_64/clickhouse*
+
+	echo "######################################################"
+}
+
+function list_SRPMs()
+{
+	echo "######################################################"
+	echo "### Looking for sRPMs at                           ###"
+	echo "### $RPMBUILD_DIR/SRPMS/x86_64/clickhouse*"
+	echo "######################################################"
+
+	ls -l "$RPMBUILD_DIR"/SRPMS/x86_64/clickhouse*
+
+	echo "######################################################"
+}
+
 ##
 ## Build RPMs
 ##
@@ -326,22 +350,15 @@ function build_packages()
 	# Download ClickHouse source archive
 	wget --progress=dot "https://github.com/yandex/ClickHouse/archive/v$CH_VERSION-$CH_TAG.zip" --output-document="$RPMBUILD_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG.zip"
 
-	# build RPM
+	# Build RPMs
+	echo "rpmbuild v$CH_VERSION-$CH_TAG"
 	rpmbuild -bs clickhouse.spec
 	rpmbuild -bb clickhouse.spec
+	echo "rpmbuild completed v$CH_VERSION-$CH_TAG"
 
-	echo "######################################################"
-	echo "######################################################"
-	echo "######################################################"
-	echo "Looking for RPMs at"
-	echo "$RPMBUILD_DIR/RPMS/x86_64/clickhouse*"
-
-	ls -l "$RPMBUILD_DIR"/RPMS/x86_64/clickhouse*
-
-	echo "######################################################"
-	echo "######################################################"
-	echo "######################################################"
-	echo "Done. Version v$CH_VERSION-$CH_TAG"
+	# Display results
+	list_RPMs
+	list_SRPMs
 }
 
 function publish_packages {
