@@ -297,10 +297,10 @@ function list_SRPMs()
 {
 	echo "######################################################"
 	echo "### Looking for sRPMs at                           ###"
-	echo "### $RPMBUILD_DIR/SRPMS/x86_64/clickhouse*"
+	echo "### $RPMBUILD_DIR/SRPMS/clickhouse*"
 	echo "######################################################"
 
-	ls -l "$RPMBUILD_DIR"/SRPMS/x86_64/clickhouse*
+	ls -l "$RPMBUILD_DIR"/SRPMS/clickhouse*
 
 	echo "######################################################"
 }
