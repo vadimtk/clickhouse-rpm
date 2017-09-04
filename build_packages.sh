@@ -330,14 +330,7 @@ function build_packages()
 
 	# build RPM
 	rpmbuild -bs clickhouse.spec
-	if [ $DISTR_MAJOR == 6 ] || [ $DISTR_MAJOR == 7 ]; then
-		# CentOS 6/7
-		CC=/opt/rh/devtoolset-6/root/usr/bin/gcc CXX=/opt/rh/devtoolset-6/root/usr/bin/g++ rpmbuild -bb clickhouse.spec
-	else
-		# Fedora 25
-		# Fedora 26
-		rpmbuild -bb clickhouse.spec
-	fi
+	rpmbuild -bb clickhouse.spec
 
 	echo "######################################################"
 	echo "######################################################"
