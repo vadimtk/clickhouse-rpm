@@ -323,10 +323,8 @@ function build_packages()
 	# Create spec file from template
 	sed -e "s/@CH_VERSION@/$CH_VERSION/" -e "s/@CH_TAG@/$CH_TAG/" "$CWD_DIR/rpm/clickhouse.spec.in" > clickhouse.spec
 
-	# Prepare ClickHouse source archive
-	wget "https://github.com/yandex/ClickHouse/archive/v$CH_VERSION-$CH_TAG.zip"
-	mv "v$CH_VERSION-$CH_TAG.zip" "ClickHouse-$CH_VERSION-$CH_TAG.zip"
-	cp *.zip "$RPMBUILD_DIR/SOURCES"
+	# Download ClickHouse source archive
+	wget --progress=dot "https://github.com/yandex/ClickHouse/archive/v$CH_VERSION-$CH_TAG.zip" --output-document="$RPMBUILD_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG.zip"
 
 	# build RPM
 	rpmbuild -bs clickhouse.spec
