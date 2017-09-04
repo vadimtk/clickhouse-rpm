@@ -222,13 +222,15 @@ function install_dependencies()
 	echo "### Install Python 2.7 ###"
 	echo "##########################"
 
+	# select Python package for installation
+	PYTHON_PACKAGE="python"
 	if [ $DISTR_MAJOR == 25 ] || [ $DISTR_MAJOR == 26 ]; then
-		sudo yum install -y python2
+		PYTHON_PACKAGE="python2"
 	elif [ $DISTR_MAJOR == 6 ]; then
-		sudo yum install -y python27
-	else
-		sudo yum install -y python
+		PYTHON_PACKAGE="python27"
 	fi
+	# and install Python
+	sudo yum install -y $PYTHON_PACKAGE
 
 	if [ $DISTR_MAJOR == 7 ]; then
 		# Connect EPEL repository for CentOS 7 (for scons)
