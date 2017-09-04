@@ -222,13 +222,15 @@ function install_dependencies()
 	echo "### Install Python 2.7 ###"
 	echo "##########################"
 
+	# select Python package for installation
+	PYTHON_PACKAGE="python"
 	if [ $DISTR_MAJOR == 25 ] || [ $DISTR_MAJOR == 26 ]; then
-		sudo yum install -y python2
+		PYTHON_PACKAGE="python2"
 	elif [ $DISTR_MAJOR == 6 ]; then
-		sudo yum install -y python27
-	else
-		sudo yum install -y python
+		PYTHON_PACKAGE="python27"
 	fi
+	# and install Python
+	sudo yum install -y $PYTHON_PACKAGE
 
 	if [ $DISTR_MAJOR == 7 ]; then
 		# Connect EPEL repository for CentOS 7 (for scons)
@@ -321,21 +323,12 @@ function build_packages()
 	# Create spec file from template
 	sed -e "s/@CH_VERSION@/$CH_VERSION/" -e "s/@CH_TAG@/$CH_TAG/" "$CWD_DIR/rpm/clickhouse.spec.in" > clickhouse.spec
 
-	# Prepare ClickHouse source archive
-	wget "https://github.com/yandex/ClickHouse/archive/v$CH_VERSION-$CH_TAG.zip"
-	mv "v$CH_VERSION-$CH_TAG.zip" "ClickHouse-$CH_VERSION-$CH_TAG.zip"
-	cp *.zip "$RPMBUILD_DIR/SOURCES"
+	# Download ClickHouse source archive
+	wget --progress=dot "https://github.com/yandex/ClickHouse/archive/v$CH_VERSION-$CH_TAG.zip" --output-document="$RPMBUILD_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG.zip"
 
 	# build RPM
 	rpmbuild -bs clickhouse.spec
-	if [ $DISTR_MAJOR == 6 ] || [ $DISTR_MAJOR == 7 ]; then
-		# CentOS 6/7
-		CC=/opt/rh/devtoolset-6/root/usr/bin/gcc CXX=/opt/rh/devtoolset-6/root/usr/bin/g++ rpmbuild -bb clickhouse.spec
-	else
-		# Fedora 25
-		# Fedora 26
-		rpmbuild -bb clickhouse.spec
-	fi
+	rpmbuild -bb clickhouse.spec
 
 	echo "######################################################"
 	echo "######################################################"
