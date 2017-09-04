@@ -8,11 +8,9 @@
 #  - build user needs to have sudo priviledges, preferrably with NOPASSWD
 #
 # Tested on:
-#  - CentOS 6.8
-#  - CentOS 6.9
-#  - CentOS 7.2
-#  - CentOS 7.3
-#  - Fedora 25
+#  - CentOS 6: 6.8, 6.9
+#  - CentOS 7: 7.2, 7.3
+#  - Fedora: 25, 26
 #
 # Copyright (C) 2016 Red Soft LLC
 # Copyright (C) 2017 Altinity Ltd
@@ -242,9 +240,9 @@ function install_dependencies()
 		fi
 	fi
 
-	echo "#####################"
-	echo "### Install GCC 6 ###"
-	echo "#####################"
+	echo "###################"
+	echo "### Install GCC ###"
+	echo "###################"
 
 	export CC=gcc
 	export CXX=g++
@@ -348,7 +346,7 @@ function build_packages()
 	sed -e "s/@CH_VERSION@/$CH_VERSION/" -e "s/@CH_TAG@/$CH_TAG/" "$CWD_DIR/rpm/clickhouse.spec.in" > clickhouse.spec
 
 	# Download ClickHouse source archive
-	wget --progress=dot "https://github.com/yandex/ClickHouse/archive/v$CH_VERSION-$CH_TAG.zip" --output-document="$RPMBUILD_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG.zip"
+	wget --progress=dot:giga "https://github.com/yandex/ClickHouse/archive/v$CH_VERSION-$CH_TAG.zip" --output-document="$RPMBUILD_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG.zip"
 
 	# Build RPMs
 	echo "rpmbuild v$CH_VERSION-$CH_TAG"
