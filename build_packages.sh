@@ -40,9 +40,6 @@ CWD_DIR=`pwd`
 # Where runtime data would be kept
 RUNTIME_DIR="$CWD_DIR/runtime"
 
-# Where additional packages would be kept
-LIB_DIR="$RUNTIME_DIR/lib"
-
 # Where RPMs would be built
 RPMBUILD_DIR="$RUNTIME_DIR/rpmbuild"
 
@@ -181,19 +178,6 @@ function install_dependencies()
 	echo "### Install dependencies  ###"
 	echo "#############################"
 	
-	echo "Prepare lib dir: $LIB_DIR"
-
-	if [ ! -d "$LIB_DIR" ]; then
-		echo "Make lib dir: $LIB_DIR"
-		mkdir -p "$LIB_DIR"
-	fi
-
-	echo "Clean lib dir: $LIB_DIR"
-	rm -rf "$LIB_DIR/"*
-
-	echo "cd into $LIB_DIR"
-	cd "$LIB_DIR"
-
 	echo "####################################"
 	echo "### Install development packages ###"
 	echo "####################################"
@@ -230,19 +214,22 @@ function install_dependencies()
 	# and install Python
 	sudo yum install -y $PYTHON_PACKAGE
 
-	if [ $DISTR_MAJOR == 7 ]; then
-		# Connect EPEL repository for CentOS 7 (for scons)
-		wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-		sudo yum -y --nogpgcheck install epel-release-latest-7.noarch.rpm
-		if ! sudo yum -y install scons; then
-			echo "FAILED to install scons"
-			exit 1; 
-		fi
-	fi
-
 	echo "###################"
 	echo "### Install GCC ###"
 	echo "###################"
+
+	if [ $DISTR_MAJOR == 7 ]; then
+		# Connect EPEL repository for CentOS 7 (for scons)
+		if ! sudo yum -y --nogpgcheck install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm; then
+			echo "FAILED to install epel"
+			exit 1
+		fi
+
+		if ! sudo yum -y install scons; then
+			echo "FAILED to install scons"
+			exit 1
+		fi
+	fi
 
 	export CC=gcc
 	export CXX=g++
@@ -310,10 +297,10 @@ function list_SRPMs()
 {
 	echo "######################################################"
 	echo "### Looking for sRPMs at                           ###"
-	echo "### $RPMBUILD_DIR/SRPMS/x86_64/clickhouse*"
+	echo "### $RPMBUILD_DIR/SRPMS/clickhouse*"
 	echo "######################################################"
 
-	ls -l "$RPMBUILD_DIR"/SRPMS/x86_64/clickhouse*
+	ls -l "$RPMBUILD_DIR"/SRPMS/clickhouse*
 
 	echo "######################################################"
 }
@@ -331,7 +318,7 @@ function build_packages()
 	echo "Clean up after previous run"
 	rm -f "$RPMBUILD_DIR"/RPMS/x86_64/clickhouse*
 	rm -f "$RPMBUILD_DIR"/SRPMS/clickhouse*
-	rm -f "$RPMSPEC_DIR"/*.zip
+	rm -f "$RPMSPEC_DIR"/*.spec
 
 	echo "Configure RPM build environment"
 	echo '%_topdir '"$RPMBUILD_DIR"'
@@ -342,17 +329,20 @@ function build_packages()
 	echo "###########################"
 	cd "$RPMSPEC_DIR"
 	
-	# Create spec file from template
-	sed -e "s/@CH_VERSION@/$CH_VERSION/" -e "s/@CH_TAG@/$CH_TAG/" "$CWD_DIR/rpm/clickhouse.spec.in" > clickhouse.spec
-
 	# Download ClickHouse source archive
 	wget --progress=dot:giga "https://github.com/yandex/ClickHouse/archive/v$CH_VERSION-$CH_TAG.zip" --output-document="$RPMBUILD_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG.zip"
 
+	# Create spec file from template
+	sed \
+		-e "s/@CH_VERSION@/$CH_VERSION/" \
+		-e "s/@CH_TAG@/$CH_TAG/" \
+		"$CWD_DIR/clickhouse.spec.in" > "$RPMSPEC_DIR/clickhouse.spec"
+
 	# Build RPMs
-	echo "rpmbuild v$CH_VERSION-$CH_TAG"
-	rpmbuild -bs clickhouse.spec
-	rpmbuild -bb clickhouse.spec
-	echo "rpmbuild completed v$CH_VERSION-$CH_TAG"
+	echo "rpmbuild $CH_VERSION-$CH_TAG"
+	rpmbuild -bs "$RPMSPEC_DIR/clickhouse.spec"
+	rpmbuild -bb "$RPMSPEC_DIR/clickhouse.spec"
+	echo "rpmbuild completed $CH_VERSION-$CH_TAG"
 
 	# Display results
 	list_RPMs
