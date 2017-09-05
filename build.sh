@@ -359,6 +359,18 @@ function publish_packages {
   if ! ssh $REPO_USER@$REPO_SERVER "rm -rf $REPO_ROOT/$CH_TAG/el$DISTR_MAJOR && mv /tmp/clickhouse-repo $REPO_ROOT/$CH_TAG/el$DISTR_MAJOR"; then exit 1; fi
 }
 
+
+function usage()
+{
+	echo "Usage:"
+	echo "./build.sh all - install packages and build RPMs"
+	echo "./build.sh rpms - do not install  packages, just build rpms"
+	echo "./build.sh publish - publish packages"
+	
+	exit 0
+}
+
+
 os_detect
 
 if ! os_rpm_based; then
@@ -368,13 +380,24 @@ else
 	echo "RPM-based OS detected, continue"
 fi
 
-if [[ "$1" != "publish_only"  && "$1" != "build_only" ]]; then
-  install_dependencies
+if [ -z "$1" ]; then
+	usage
 fi
-if [ "$1" != "publish_only" ]; then
-  build_packages
-fi
-if [ "$1" == "publish_only" ]; then
-  publish_packages
+
+COMMAND="$1"
+
+if [ "$COMMAND" == "all" ]; then
+	install_dependencies
+	build_packages
+
+elif [ "$COMMAND" == "rpms" ]; then
+	build_packages
+
+elif [ "$COMMAND" == "publish" ]; then
+	publish_packages
+
+else
+	# unknown command
+	usage
 fi
 
