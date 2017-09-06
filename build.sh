@@ -398,6 +398,7 @@ elif [ "$COMMAND" == "publish" ]; then
 
 else
 	# unknown command
+	echo "Unknown command: $COMMAND"
 	usage
 fi
 
