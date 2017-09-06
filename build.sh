@@ -69,7 +69,31 @@ function os_unsupported()
 ##
 function os_yum_based()
 {
-	[ "$OS" == "centos" ] || [ "$OS" == "fedora" ]
+	[ "$OS" == "rhel" ] || [ "$OS" == "centos" ] || [ "$OS" == "fedora" ]
+}
+
+##
+## is OS Red Hat Enterprise Linux?
+##
+function os_rhel()
+{
+	[ "$OS" == "rhel" ] || [ "$OS" == "redhatenterpriseserver" ]
+}
+
+##
+## is OS CenOS?
+##
+function os_centos()
+{
+	[ "$OS" == "centos" ]
+}
+
+##
+## is OS Fedora?
+##
+function os_fedora()
+{
+	[ "$OS" == "fedora" ]
 }
 
 ##
@@ -231,16 +255,30 @@ function install_dependencies()
 		fi
 	fi
 
-	export CC=gcc
-	export CXX=g++
 
 	if [ $DISTR_MAJOR == 6 ] || [ $DISTR_MAJOR == 7 ]; then
 		# CentOS 6/7
+		# RHEL 6/7
 		# Install gcc 6 from compatibility packages
-		sudo yum install -y centos-release-scl
+		if os_centos; then
+			sudo yum install -y centos-release-scl
+		else
+			# RHEL flavors
+
+			# vanilla RHEL
+			sudo yum-config-manager --enable rhel-server-rhscl-${DISR_MAJOR}-rpms
+
+			# AWS-based RHEL
+			sudo yum-config-manager --enable rhui-REGION-rhel-server-extras
+			sudo yum-config-manager --enable rhui-REGION-rhel-server-optional
+			sudo yum-config-manager --enable rhui-REGION-rhel-server-supplementary
+
+			sudo yum-config-manager --enable rhui-REGION-rhel-server-rhscl
+			sudo yum-config-manager --enable rhui-REGION-rhel-server-debug-rhscl
+		fi
+
+		# and install GCC6
 		sudo yum install -y devtoolset-6-gcc*
-		export CC=/opt/rh/devtoolset-6/root/usr/bin/gcc
-		export CXX=/opt/rh/devtoolset-6/root/usr/bin/g++
 
 	elif [ $DISTR_MAJOR == 25 ] || [ $DISTR_MAJOR == 26 ]; then
 		# Fedora 25 already has gcc 6, no need to install
@@ -276,9 +314,6 @@ EOF"
 
 	sudo yum install -y cmake
 	#scl enable devtoolset-6 bash
-
-	echo "Return back to dir: $CWD_DIR"
-	cd $CWD_DIR
 }
 
 function list_RPMs()
@@ -337,6 +372,19 @@ function build_packages()
 		-e "s/@CH_VERSION@/$CH_VERSION/" \
 		-e "s/@CH_TAG@/$CH_TAG/" \
 		"$CWD_DIR/clickhouse.spec.in" > "$RPMSPEC_DIR/clickhouse.spec"
+
+	echo "###############################"
+	echo "### setup path to compilers ###"
+	echo "###############################"
+
+	export CC=gcc
+	export CXX=g++
+	if [ $DISTR_MAJOR == 6 ] || [ $DISTR_MAJOR == 7 ]; then
+		export CC=/opt/rh/devtoolset-6/root/usr/bin/gcc
+		export CXX=/opt/rh/devtoolset-6/root/usr/bin/g++
+	fi
+	echo "CC=$CC"
+	echo "CXX=$CXX"
 
 	# Build RPMs
 	echo "rpmbuild $CH_VERSION-$CH_TAG"
