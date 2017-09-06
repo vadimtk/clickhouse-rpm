@@ -77,7 +77,7 @@ function os_yum_based()
 ##
 function os_rhel()
 {
-	[ "$OS" == "rhel" ]
+	[ "$OS" == "rhel" ] || [ "$OS" == "redhatenterpriseserver" ]
 }
 
 ##
@@ -277,9 +277,8 @@ function install_dependencies()
 			sudo yum-config-manager --enable rhui-REGION-rhel-server-debug-rhscl
 		fi
 
+		# and install GCC6
 		sudo yum install -y devtoolset-6-gcc*
-		export CC=/opt/rh/devtoolset-6/root/usr/bin/gcc
-		export CXX=/opt/rh/devtoolset-6/root/usr/bin/g++
 
 	elif [ $DISTR_MAJOR == 25 ] || [ $DISTR_MAJOR == 26 ]; then
 		# Fedora 25 already has gcc 6, no need to install
