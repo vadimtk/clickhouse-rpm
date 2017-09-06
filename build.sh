@@ -69,7 +69,7 @@ function os_unsupported()
 ##
 function os_yum_based()
 {
-	[ "$OS" == "centos" ] || [ "$OS" == "fedora" ]
+	[ "$OS" == "rhel" ] || [ "$OS" == "centos" ] || [ "$OS" == "fedora" ]
 }
 
 ##
