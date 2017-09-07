@@ -10,6 +10,7 @@
 # Tested on:
 #  - CentOS 6: 6.8, 6.9
 #  - CentOS 7: 7.2, 7.3
+#  - RHEL 7: 7.4
 #  - Fedora: 25, 26
 #
 # Copyright (C) 2016 Red Soft LLC
@@ -260,6 +261,9 @@ function install_dependencies()
 		# CentOS 6/7
 		# RHEL 6/7
 		# Install gcc 6 from compatibility packages
+
+		# Enable Software Collections
+		# https://www.softwarecollections.org/en/scls/rhscl/devtoolset-6/
 		if os_centos; then
 			sudo yum install -y centos-release-scl
 		else
@@ -277,7 +281,7 @@ function install_dependencies()
 			sudo yum-config-manager --enable rhui-REGION-rhel-server-debug-rhscl
 		fi
 
-		# and install GCC6
+		# and install GCC6 provided by Software Collections
 		sudo yum install -y devtoolset-6-gcc*
 
 	elif [ $DISTR_MAJOR == 25 ] || [ $DISTR_MAJOR == 26 ]; then
@@ -316,6 +320,9 @@ EOF"
 	#scl enable devtoolset-6 bash
 }
 
+##
+##
+##
 function list_RPMs()
 {
 	echo "######################################################"
@@ -328,6 +335,9 @@ function list_RPMs()
 	echo "######################################################"
 }
 
+##
+##
+##
 function list_SRPMs()
 {
 	echo "######################################################"
@@ -374,7 +384,7 @@ function build_packages()
 		"$CWD_DIR/clickhouse.spec.in" > "$RPMSPEC_DIR/clickhouse.spec"
 
 	echo "###############################"
-	echo "### setup path to compilers ###"
+	echo "### Setup path to compilers ###"
 	echo "###############################"
 
 	export CC=gcc
@@ -407,7 +417,9 @@ function publish_packages {
   if ! ssh $REPO_USER@$REPO_SERVER "rm -rf $REPO_ROOT/$CH_TAG/el$DISTR_MAJOR && mv /tmp/clickhouse-repo $REPO_ROOT/$CH_TAG/el$DISTR_MAJOR"; then exit 1; fi
 }
 
-
+##
+##
+##
 function usage()
 {
 	echo "Usage:"
