@@ -92,16 +92,16 @@ for daemon in $DAEMONS; do \
 done
 cd ..
 
-mkdir -p $RPM_BUILD_ROOT/usr/share/clickhouse/bin
-mkdir -p $RPM_BUILD_ROOT/usr/share/clickhouse/headers
-#debian/copy_clang_binaries.sh $RPM_BUILD_ROOT/usr/share/clickhouse/bin/
-#./copy_headers.sh . $RPM_BUILD_ROOT/usr/share/clickhouse/headers
 mkdir -p %{buildroot}/etc/clickhouse-server
 mkdir -p %{buildroot}/etc/clickhouse-client
 mkdir -p %{buildroot}/etc/init.d
 mkdir -p %{buildroot}/etc/cron.d
 mkdir -p %{buildroot}/etc/security/limits.d/
+
 mkdir -p %{buildroot}/usr/bin
+mkdir -p %{buildroot}/usr/share/clickhouse/bin
+mkdir -p %{buildroot}/usr/share/clickhouse/headers
+
 cp -r %{_builddir}/%{buildsubdir}/debian/clickhouse-server.init   %{buildroot}/etc/init.d/clickhouse-server
 cp -r %{_builddir}/%{buildsubdir}/debian/clickhouse-server.cron.d %{buildroot}/etc/cron.d/clickhouse-server
 cp -r %{_builddir}/%{buildsubdir}/debian/clickhouse.limits        %{buildroot}/etc/security/limits.d/clickhouse.conf
