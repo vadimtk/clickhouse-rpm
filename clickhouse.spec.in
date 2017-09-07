@@ -116,8 +116,13 @@ CLICKHOUSE_DATADIR=/var/lib/clickhouse
 
 # Make sure the administrative user exists
 if ! getent passwd ${CLICKHOUSE_USER} > /dev/null; then
-	adduser --system --no-create-home --home ${CLICKHOUSE_DATADIR} \
-		--shell /sbin/nologin --comment "Clickhouse server" clickhouse > /dev/null
+	adduser \
+		--system \
+		--no-create-home \
+		--home ${CLICKHOUSE_DATADIR} \
+		--shell /sbin/nologin \
+		--comment "Clickhouse server" \
+		clickhouse > /dev/null
 fi
 
 # if the user was created manually, make sure the group is there as well
@@ -130,7 +135,7 @@ chown -R ${CLICKHOUSE_USER}:${CLICKHOUSE_GROUP} /etc/compressor
 
 %post server
 if [ $1 = 1 ]; then
-    /sbin/chkconfig --add clickhouse-server
+	/sbin/chkconfig --add clickhouse-server
 fi
 
 # CODE TAKEN FROM clickhouse-server-base.postinst (with update-rc logic commented out)
@@ -148,8 +153,13 @@ CLICKHOUSE_SERVER_ETCDIR=/etc/clickhouse-server
 
 # Make sure the administrative user exists
 if ! getent passwd ${CLICKHOUSE_USER} > /dev/null; then
-	adduser --system --no-create-home --home ${CLICKHOUSE_DATADIR} \
-		--shell /sbin/nologin --comment "Clickhouse server" clickhouse > /dev/null
+	adduser \
+		--system \
+		--no-create-home \
+		--home ${CLICKHOUSE_DATADIR} \
+		--shell /sbin/nologin \
+		--comment "Clickhouse server" \
+		clickhouse > /dev/null
 fi
 
 # if the user was created manually, make sure the group is there as well
@@ -176,48 +186,32 @@ Please fix this and reinstall this package." >&2
 fi
 
 if [ ! -d ${CLICKHOUSE_DATADIR} ]; then
-        # only for compatibility for old /opt/clickhouse, remove after 2017-06-01
-        if [ -d ${CLICKHOUSE_DATADIR_OLD} ]; then
-                ln -s ${CLICKHOUSE_DATADIR_OLD} ${CLICKHOUSE_DATADIR}
-        else
-                # DONT remove after 2017-06-01 :
-                mkdir -p ${CLICKHOUSE_DATADIR}
-                chown ${CLICKHOUSE_USER}:${CLICKHOUSE_GROUP} ${CLICKHOUSE_DATADIR}
-                chmod 700 ${CLICKHOUSE_DATADIR}
-        fi
+	mkdir -p ${CLICKHOUSE_DATADIR}
+	chown ${CLICKHOUSE_USER}:${CLICKHOUSE_GROUP} ${CLICKHOUSE_DATADIR}
+	chmod 700 ${CLICKHOUSE_DATADIR}
 fi
 
 if [ ! -d ${CLICKHOUSE_LOGDIR} ]; then
-        mkdir -p ${CLICKHOUSE_LOGDIR}
-        chown root:${CLICKHOUSE_GROUP} ${CLICKHOUSE_LOGDIR}
-        # Allow everyone to read logs, root and clickhouse to read-write
-        chmod 775 ${CLICKHOUSE_LOGDIR}
-fi
-
-if [ -d ${CLICKHOUSE_LOGDIR} ]; then
-        # only for compatibility for old metrika user, remove string after 2017-06-01 :
-        su -s /bin/sh ${CLICKHOUSE_USER} -c "test -w ${CLICKHOUSE_LOGDIR}" || chown -R root:${CLICKHOUSE_GROUP} ${CLICKHOUSE_LOGDIR}; chmod -R ug+rw ${CLICKHOUSE_LOGDIR}
-fi
-
-if [ -d ${CLICKHOUSE_SERVER_ETCDIR} ]; then
-        # -R only for compatibility for old metrika user, remove -R after 2017-06-01
-        su -s /bin/sh ${CLICKHOUSE_USER} -c "test -w ${CLICKHOUSE_SERVER_ETCDIR}" || chown -R ${CLICKHOUSE_USER}:${CLICKHOUSE_GROUP} ${CLICKHOUSE_SERVER_ETCDIR}
+	mkdir -p ${CLICKHOUSE_LOGDIR}
+	chown root:${CLICKHOUSE_GROUP} ${CLICKHOUSE_LOGDIR}
+	# Allow everyone to read logs, root and clickhouse to read-write
+	chmod 775 ${CLICKHOUSE_LOGDIR}
 fi
 
 # Clean old dynamic compilation results
 if [ -d "${CLICKHOUSE_DATADIR}/build" ]; then
-        rm -f ${CLICKHOUSE_DATADIR}/build/*.cpp ${CLICKHOUSE_DATADIR}/build/*.so ||:
+	rm -f ${CLICKHOUSE_DATADIR}/build/*.cpp ${CLICKHOUSE_DATADIR}/build/*.so ||:
 fi
 
 %preun server
 if [ $1 = 0 ]; then
-    /sbin/service clickhouse-server stop > /dev/null 2>&1
-    /sbin/chkconfig --del clickhouse-server
+	/sbin/service clickhouse-server stop > /dev/null 2>&1
+	/sbin/chkconfig --del clickhouse-server
 fi
 
 %postun server
 if [ $1 -ge 1 ]; then
-    /sbin/service clickhouse-server restart >/dev/null 2>&1
+	/sbin/service clickhouse-server restart >/dev/null 2>&1
 fi
 
 %files server-common
@@ -252,3 +246,4 @@ fi
 - update for 1.1.54127
 * Mon Nov 14 2016 Nikolay Samofatov <nikolay.samofatov@red-soft.biz> 
 - create spec file
+
