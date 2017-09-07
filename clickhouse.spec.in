@@ -16,7 +16,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# CentOS 7 would force ".el7.centos", we want to avoid that.
+# All RPMs 'magic' is described here:
+# https://fedoraproject.org/wiki/How_to_create_an_RPM_package
+
+# rpm --showrc will show you all of the macros
+
+# CentOS 7 makes dist as ".el7.centos", we'd like to have dist=".el7", in order to use packages for RHEL as well, without renaming
 %if 0%{?rhel} != 0
 %define dist .el%{rhel}
 %endif
@@ -82,12 +87,13 @@ rm -rf $RPM_BUILD_ROOT
 DAEMONS="clickhouse clickhouse-compressor clickhouse-client clickhouse-server"
 
 cd build
-for daemon in $DAEMONS; do\
-        DESTDIR=$RPM_BUILD_ROOT cmake -DCOMPONENT=$daemon -P cmake_install.cmake;\
+for daemon in $DAEMONS; do \
+        DESTDIR=$RPM_BUILD_ROOT cmake -DCOMPONENT=$daemon -P cmake_install.cmake; \
 done
 cd ..
 
-mkdir -p $RPM_BUILD_ROOT/usr/share/clickhouse/bin $RPM_BUILD_ROOT/usr/share/clickhouse/headers
+mkdir -p $RPM_BUILD_ROOT/usr/share/clickhouse/bin
+mkdir -p $RPM_BUILD_ROOT/usr/share/clickhouse/headers
 #debian/copy_clang_binaries.sh $RPM_BUILD_ROOT/usr/share/clickhouse/bin/
 #./copy_headers.sh . $RPM_BUILD_ROOT/usr/share/clickhouse/headers
 mkdir -p %{buildroot}/etc/clickhouse-server
@@ -96,14 +102,14 @@ mkdir -p %{buildroot}/etc/init.d
 mkdir -p %{buildroot}/etc/cron.d
 mkdir -p %{buildroot}/etc/security/limits.d/
 mkdir -p %{buildroot}/usr/bin
-cp -r %{_builddir}/%{buildsubdir}/debian/clickhouse-server.init %{buildroot}/etc/init.d/clickhouse-server
+cp -r %{_builddir}/%{buildsubdir}/debian/clickhouse-server.init   %{buildroot}/etc/init.d/clickhouse-server
 cp -r %{_builddir}/%{buildsubdir}/debian/clickhouse-server.cron.d %{buildroot}/etc/cron.d/clickhouse-server
-cp -r %{_builddir}/%{buildsubdir}/debian/clickhouse.limits %{buildroot}/etc/security/limits.d/clickhouse.conf
-cp -r %{_builddir}/%{buildsubdir}/dbms/src/Server/config.xml %{buildroot}/etc/clickhouse-server/
+cp -r %{_builddir}/%{buildsubdir}/debian/clickhouse.limits        %{buildroot}/etc/security/limits.d/clickhouse.conf
+cp -r %{_builddir}/%{buildsubdir}/dbms/src/Server/config.xml      %{buildroot}/etc/clickhouse-server/
+cp -r %{_builddir}/%{buildsubdir}/dbms/src/Server/users.xml       %{buildroot}/etc/clickhouse-server/
 #cp -r %{_builddir}/%{buildsubdir}/dbms/src/Client/config.xml %{buildroot}/etc/clickhouse-client/
-cp -r %{_builddir}/%{buildsubdir}/dbms/src/Server/users.xml %{buildroot}/etc/clickhouse-server/
 cp -r %{buildroot}/usr/local/bin/* %{buildroot}/usr/bin
-rm -fr %{buildroot}/usr/local
+rm -rf %{buildroot}/usr/local
 
 
 %clean
@@ -143,9 +149,7 @@ fi
 CLICKHOUSE_USER=clickhouse
 CLICKHOUSE_GROUP=${CLICKHOUSE_USER}
 CLICKHOUSE_DATADIR=/var/lib/clickhouse
-CLICKHOUSE_DATADIR_OLD=/opt/clickhouse  # remove after 2017-06-01
 CLICKHOUSE_LOGDIR=/var/log/clickhouse-server
-CLICKHOUSE_SERVER_ETCDIR=/etc/clickhouse-server
 
 #if [ -x "/etc/init.d/clickhouse-server" ]; then
 #       update-rc.d clickhouse-server defaults 19 19 >/dev/null || exit $?
@@ -219,11 +223,11 @@ fi
 /etc/clickhouse-server/users.xml
 
 %files server
-/etc/init.d/clickhouse-server
 /etc/cron.d/clickhouse-server
+/etc/init.d/clickhouse-server
 /etc/security/limits.d/clickhouse.conf
-/usr/bin/clickhouse-server
 /usr/bin/clickhouse
+/usr/bin/clickhouse-server
 /usr/share/clickhouse
 
 %files client
