@@ -17,45 +17,49 @@
 # limitations under the License.
 
 
-function create_CH_user()
+CLICKHOUSE_USER=clickhouse
+CLICKHOUSE_GROUP=${CLICKHOUSE_USER}
+CLICKHOUSE_DATADIR=/var/lib/clickhouse
+CLICKHOUSE_LOGDIR=/var/log/clickhouse-server
+
+function create_system_user()
 {
-	CLICKHOUSE_USER=$1
-	CLICKHOUSE_GROUP=$2
-	CLICKHOUSE_DATADIR=$3
+	USER=$1
+	GROUP=$2
+	HOMEDIR=$3
 
-	echo "Create CH user ${CLICKHOUSE_USER}.${CLICKHOUSE_GREOUP} with datadir ${CLICKHOUSE_DATADIR}"
+	echo "Create user ${USER}.${GROUP} with datadir ${HOMEDIR}"
 
-#	# Make sure the administrative user exists
-#	if ! getent passwd ${CLICKHOUSE_USER} > /dev/null; then
-#		adduser \
-#			--system \
-#			--no-create-home \
-#			--home ${CLICKHOUSE_DATADIR} \
-#			--shell /sbin/nologin \
-#			--comment "Clickhouse server" \
-#			clickhouse > /dev/null
-#	fi
-#
-#	# if the user was created manually, make sure the group is there as well
-#	if ! getent group ${CLICKHOUSE_GROUP} > /dev/null; then
-#		addgroup --system ${CLICKHOUSE_GROUP} > /dev/null
-#	fi
-#
-#	# make sure user is in the correct group
-#	if ! id -Gn ${CLICKHOUSE_USER} | grep -qw ${CLICKHOUSE_USER}; then
-#		adduser ${CLICKHOUSE_USER} ${CLICKHOUSE_GROUP} > /dev/null
-#	fi
-#
-#	# check validity of user and group
-#	if [ "`id -u ${CLICKHOUSE_USER}`" -eq 0 ]; then
-#		echo "The ${CLICKHOUSE_USER} system user must not have uid 0 (root). Please fix this and reinstall this package." >&2
-#	        exit 1
-#	fi
-#
-#	if [ "`id -g ${CLICKHOUSE_GROUP}`" -eq 0 ]; then
-#		echo "The ${CLICKHOUSE_USER} system user must not have root as primary group. Please fix this and reinstall this package." >&2
-#	        exit 1
-#	fi
+	# Make sure the administrative user exists
+	if ! getent passwd ${USER} > /dev/null; then
+		adduser \
+			--system \
+			--no-create-home \
+			--home ${HOMEDIR} \
+			--shell /sbin/nologin \
+			--comment "Clickhouse server" \
+			clickhouse > /dev/null
+	fi
 
+	# if the user was created manually, make sure the group is there as well
+	if ! getent group ${GROUP} > /dev/null; then
+		addgroup --system ${GROUP} > /dev/null
+	fi
+
+	# make sure user is in the correct group
+	if ! id -Gn ${USER} | grep -qw ${USER}; then
+		adduser ${USER} ${GROUP} > /dev/null
+	fi
+
+	# check validity of user and group
+	if [ "`id -u ${USER}`" -eq 0 ]; then
+		echo "The ${USER} system user must not have uid 0 (root). Please fix this and reinstall this package." >&2
+	        exit 1
+	fi
+
+	if [ "`id -g ${GROUP}`" -eq 0 ]; then
+		echo "The ${USER} system user must not have root as primary group. Please fix this and reinstall this package." >&2
+	        exit 1
+	fi
 }
 

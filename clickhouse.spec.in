@@ -129,28 +129,7 @@ rm -rf %{buildroot}
 %post compressor
 @CLICKHOUSE_SPEC_FUNCS_SH@
 
-CLICKHOUSE_USER=clickhouse
-CLICKHOUSE_GROUP=${CLICKHOUSE_USER}
-CLICKHOUSE_DATADIR=/var/lib/clickhouse
-
-create_CH_user $CLICKHOUSE_USER $CLICKHOUSE_GROUP $CLICKHOUSE_DATADIR
-
-# Make sure the administrative user exists
-if ! getent passwd ${CLICKHOUSE_USER} > /dev/null; then
-	adduser \
-		--system \
-		--no-create-home \
-		--home ${CLICKHOUSE_DATADIR} \
-		--shell /sbin/nologin \
-		--comment "Clickhouse server" \
-		clickhouse > /dev/null
-fi
-
-# if the user was created manually, make sure the group is there as well
-if ! getent group ${CLICKHOUSE_GROUP} > /dev/null; then
-	addgroup --system ${CLICKHOUSE_GROUP} > /dev/null
-fi
-
+create_system_user $CLICKHOUSE_USER $CLICKHOUSE_GROUP $CLICKHOUSE_DATADIR
 mkdir -p /etc/compressor/conf.d
 chown -R ${CLICKHOUSE_USER}:${CLICKHOUSE_GROUP} /etc/compressor
 
@@ -159,55 +138,11 @@ if [ $1 = 1 ]; then
 	/sbin/chkconfig --add clickhouse-server
 fi
 
-# CODE TAKEN FROM clickhouse-server-base.postinst (with update-rc logic commented out)
-
 @CLICKHOUSE_SPEC_FUNCS_SH@
 
-CLICKHOUSE_USER=clickhouse
-CLICKHOUSE_GROUP=${CLICKHOUSE_USER}
-CLICKHOUSE_DATADIR=/var/lib/clickhouse
-CLICKHOUSE_LOGDIR=/var/log/clickhouse-server
+create_system_user $CLICKHOUSE_USER $CLICKHOUSE_GROUP $CLICKHOUSE_DATADIR
 
-create_CH_user $CLICKHOUSE_USER $CLICKHOUSE_GROUP $CLICKHOUSE_DATADIR
-
-#if [ -x "/etc/init.d/clickhouse-server" ]; then
-#       update-rc.d clickhouse-server defaults 19 19 >/dev/null || exit $?
-#fi
-
-# Make sure the administrative user exists
-if ! getent passwd ${CLICKHOUSE_USER} > /dev/null; then
-	adduser \
-		--system \
-		--no-create-home \
-		--home ${CLICKHOUSE_DATADIR} \
-		--shell /sbin/nologin \
-		--comment "Clickhouse server" \
-		clickhouse > /dev/null
-fi
-
-# if the user was created manually, make sure the group is there as well
-if ! getent group ${CLICKHOUSE_GROUP} > /dev/null; then
-        addgroup --system ${CLICKHOUSE_GROUP} > /dev/null
-fi
-
-# make sure user is in the correct group
-if ! id -Gn ${CLICKHOUSE_USER} | grep -qw ${CLICKHOUSE_USER}; then
-        adduser ${CLICKHOUSE_USER} ${CLICKHOUSE_GROUP} > /dev/null
-fi
-
-# check validity of user and group
-if [ "`id -u ${CLICKHOUSE_USER}`" -eq 0 ]; then
-        echo "The ${CLICKHOUSE_USER} system user must not have uid 0 (root).
-Please fix this and reinstall this package." >&2
-        exit 1
-fi
-
-if [ "`id -g ${CLICKHOUSE_GROUP}`" -eq 0 ]; then
-        echo "The ${CLICKHOUSE_USER} system user must not have root as primary group.
-Please fix this and reinstall this package." >&2
-        exit 1
-fi
-
+# Ensure required folders are in place
 if [ ! -d ${CLICKHOUSE_DATADIR} ]; then
 	mkdir -p ${CLICKHOUSE_DATADIR}
 	chown ${CLICKHOUSE_USER}:${CLICKHOUSE_GROUP} ${CLICKHOUSE_DATADIR}
