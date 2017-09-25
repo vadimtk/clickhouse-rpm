@@ -93,13 +93,13 @@ make %{?_smp_mflags}
 cd ..
 
 %install
-rm -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
 
 DAEMONS="clickhouse clickhouse-compressor clickhouse-client clickhouse-server"
 
 cd build
 for daemon in $DAEMONS; do \
-        DESTDIR=$RPM_BUILD_ROOT cmake -DCOMPONENT=$daemon -P cmake_install.cmake; \
+        DESTDIR=%{buildroot} cmake -DCOMPONENT=$daemon -P cmake_install.cmake; \
 done
 cd ..
 
@@ -124,7 +124,7 @@ rm -rf %{buildroot}/usr/local
 
 
 %clean
-rm -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
 
 %post compressor
 CLICKHOUSE_USER=clickhouse
