@@ -383,8 +383,8 @@ function build_packages()
 		-e "s/@CH_TAG@/$CH_TAG/" \
 		-e "/@CLICKHOUSE_SPEC_FUNCS_SH@/ { 
 r $CWD_DIR/clickhouse.spec.funcs.sh
-d }" \ 
-        > "$RPMSPEC_DIR/clickhouse.spec"
+d }" \
+		> "$RPMSPEC_DIR/clickhouse.spec"
  
 
 	echo "###############################"
