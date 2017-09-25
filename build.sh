@@ -378,10 +378,14 @@ function build_packages()
 	wget --progress=dot:giga "https://github.com/yandex/ClickHouse/archive/v$CH_VERSION-$CH_TAG.zip" --output-document="$RPMBUILD_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG.zip"
 
 	# Create spec file from template
-	sed \
+	cat "$CWD_DIR/clickhouse.spec.in" | sed \
 		-e "s/@CH_VERSION@/$CH_VERSION/" \
 		-e "s/@CH_TAG@/$CH_TAG/" \
-		"$CWD_DIR/clickhouse.spec.in" > "$RPMSPEC_DIR/clickhouse.spec"
+		-e "/@CLICKHOUSE_SPEC_FUNCS_SH@/ { 
+r $CWD_DIR/clickhouse.spec.funcs.sh
+d }" \
+		> "$RPMSPEC_DIR/clickhouse.spec"
+ 
 
 	echo "###############################"
 	echo "### Setup path to compilers ###"
