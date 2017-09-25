@@ -95,14 +95,14 @@ cd ..
 %install
 rm -rf %{buildroot}
 
-DAEMONS="clickhouse clickhouse-compressor clickhouse-client clickhouse-server"
-
 cd build
+DAEMONS="clickhouse clickhouse-compressor clickhouse-client clickhouse-server"
 for daemon in $DAEMONS; do \
         DESTDIR=%{buildroot} cmake -DCOMPONENT=$daemon -P cmake_install.cmake; \
 done
 cd ..
 
+# create folders structure to be distributed
 mkdir -p %{buildroot}/etc/clickhouse-server
 mkdir -p %{buildroot}/etc/clickhouse-client
 mkdir -p %{buildroot}/etc/init.d
@@ -113,6 +113,7 @@ mkdir -p %{buildroot}/usr/bin
 mkdir -p %{buildroot}/usr/share/clickhouse/bin
 mkdir -p %{buildroot}/usr/share/clickhouse/headers
 
+# copy files from source into folders structure for distribution
 cp -r %{_builddir}/%{buildsubdir}/debian/clickhouse-server.init   %{buildroot}/etc/init.d/clickhouse-server
 cp -r %{_builddir}/%{buildsubdir}/debian/clickhouse-server.cron.d %{buildroot}/etc/cron.d/clickhouse-server
 cp -r %{_builddir}/%{buildsubdir}/debian/clickhouse.limits        %{buildroot}/etc/security/limits.d/clickhouse.conf
