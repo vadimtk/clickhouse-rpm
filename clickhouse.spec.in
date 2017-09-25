@@ -127,9 +127,13 @@ rm -rf %{buildroot}/usr/local
 rm -rf %{buildroot}
 
 %post compressor
+@CLICKHOUSE_SPEC_FUNCS_SH@
+
 CLICKHOUSE_USER=clickhouse
 CLICKHOUSE_GROUP=${CLICKHOUSE_USER}
 CLICKHOUSE_DATADIR=/var/lib/clickhouse
+
+create_CH_user $CLICKHOUSE_USER $CLICKHOUSE_GROUP $CLICKHOUSE_DATADIR
 
 # Make sure the administrative user exists
 if ! getent passwd ${CLICKHOUSE_USER} > /dev/null; then
@@ -157,10 +161,14 @@ fi
 
 # CODE TAKEN FROM clickhouse-server-base.postinst (with update-rc logic commented out)
 
+@CLICKHOUSE_SPEC_FUNCS_SH@
+
 CLICKHOUSE_USER=clickhouse
 CLICKHOUSE_GROUP=${CLICKHOUSE_USER}
 CLICKHOUSE_DATADIR=/var/lib/clickhouse
 CLICKHOUSE_LOGDIR=/var/log/clickhouse-server
+
+create_CH_user $CLICKHOUSE_USER $CLICKHOUSE_GROUP $CLICKHOUSE_DATADIR
 
 #if [ -x "/etc/init.d/clickhouse-server" ]; then
 #       update-rc.d clickhouse-server defaults 19 19 >/dev/null || exit $?
