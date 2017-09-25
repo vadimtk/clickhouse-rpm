@@ -21,10 +21,15 @@
 
 # rpm --showrc will show you all of the macros
 
+# Macros available:
+# @CH_VERSION@="1.1.54289"
+# @CH_TAG@="stable"
+
 # CentOS 7 makes dist as ".el7.centos", we'd like to have dist=".el7", in order to use packages for RHEL as well, without renaming
 %if 0%{?rhel} != 0
 %define dist .el%{rhel}
 %endif
+
 
 Summary: Yandex ClickHouse DBMS
 Name: clickhouse
@@ -67,10 +72,16 @@ Summary: %{name} compressor binary
 This package contains compressor utility for ClickHouse DBMS.
 
 %prep
+# see available macros spec
+# @CH_VERSION@="1.1.54289"
+# @CH_TAG@="stable"
 %setup -q -n ClickHouse-%{version}-@CH_TAG@
 CH_VERSION=@CH_VERSION@
 CH_VERSION_ARR=(${CH_VERSION//./ })
-sed -i -- "s/VERSION_REVISION .*)/VERSION_REVISION ${CH_VERSION_ARR[2]})/g" dbms/cmake/version.cmake
+# prepare cmake files
+# VERSION_REVISION=54289
+sed -i -- "s/VERSION_REVISION .*)/VERSION_REVISION ${CH_VERSION_ARR[2]})/g"   dbms/cmake/version.cmake
+# VERSION_DESCRIBE=v1.1.54289-stable
 sed -i -- "s/VERSION_DESCRIBE .*)/VERSION_DESCRIBE v@CH_VERSION@-@CH_TAG@)/g" dbms/cmake/version.cmake
 
 %build
