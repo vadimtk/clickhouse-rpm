@@ -9,7 +9,7 @@
 #
 # Tested on:
 #  - CentOS 6: 6.8, 6.9
-#  - CentOS 7: 7.2, 7.3
+#  - CentOS 7: 7.2, 7.3, 7.4
 #  - RHEL 7: 7.4
 #  - Fedora: 25, 26
 #
@@ -47,7 +47,7 @@ RPMBUILD_DIR="$RUNTIME_DIR/rpmbuild"
 # Where RPM spec file would be kept
 RPMSPEC_DIR="$RUNTIME_DIR/rpmspec"
 
-# Detect number of threads
+# Detect number of threads to run 'make' command
 export THREADS=$(grep -c ^processor /proc/cpuinfo)
 
 # Build most libraries using default GCC
