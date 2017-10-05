@@ -330,7 +330,7 @@ function list_RPMs()
 	echo "### $RPMBUILD_DIR/RPMS/x86_64/clickhouse*"
 	echo "######################################################"
 
-	ls -l "$RPMBUILD_DIR"/RPMS/x86_64/clickhouse*
+	ls -l "$RPMBUILD_DIR"/RPMS/x86_64/clickhouse*.rpm
 
 	echo "######################################################"
 }
@@ -411,6 +411,85 @@ d }" \
 	list_SRPMs
 }
 
+function packagecloud_distro_version_id()
+{
+	# EL6  - 27
+	# EL7  - 140
+	# FC25 - 179
+	# FC26 - 184
+	# JAVA - 167
+
+	if os_centos; then
+		if [ $DISTR_MAJOR == 6 ]; then
+			return 27
+		elif [ $DISTR_MAJOR == 7 ]; then
+			return 140
+		else
+			echo "Unknown centos distro"
+			exit 1
+		fi
+	elif os_fedora; then
+		if [ $DISTR_MAJOR == 25 ]; then
+			return 179
+		elif [ $DISTR_MAJOR == 26 ]; then
+			return 184
+		else
+			echo "Unknown fedora distro"
+			exit 1
+		fi
+	fi
+
+	# not found what OS are we running on
+	echo "Unknown OS"
+	exit 1
+}
+
+function packagecloud_publish_file()
+{
+	# Packagecloud user id. Ex.: 123ab45678c9012d3e4567890abcdef1234567890abcdef1
+	$PACKAGECLOUD_ID=$1
+
+	# Path inside user's repo on packagecloud. Ex.: altinity/clickhouse
+	$PACKAGECLOUD_PATH=$2
+
+	# Packagecloud distro version id. See packagecloud_distro_version_id() function. Ex.: 27
+	$DISTRO_VERSION_ID=$3
+
+	# Path to RPM file to publish
+	$RPM_FILE_PATH=$4
+
+	echo "Publishing file: $RPM_FILE_PATH"
+	
+#	curl -v -X POST https://$PACKAGECLOUD_ID:@packagecloud.io/api/v1/repos/$PACKAGECLOUD_PATH/packages.json \
+#-F "package[distro_version_id]=$DISTRO_VERSION_ID" \
+#-F "package[package_file]=@$RPM_FILE_PATH"
+
+echo "	curl -v -X POST https://$PACKAGECLOUD_ID:@packagecloud.io/api/v1/repos/$PACKAGECLOUD_PATH/packages.json \ "
+echo "-F package[distro_version_id]=$DISTRO_VERSION_ID \ "
+echo "-F package[package_file]=@$RPM_FILE_PATH"
+
+}
+
+function packagecloud_publish()
+{
+	# Packagecloud user id. Ex.: 123ab45678c9012d3e4567890abcdef1234567890abcdef1
+	$PACKAGECLOUD_ID=$1
+
+	# Path inside user's repo on packagecloud. Ex.: altinity/clickhouse
+	$PACKAGECLOUD_PATH="altinity/clickhouse"
+
+	# Packagecloud distro version id. See packagecloud_distro_version_id() function. Ex.: 27
+	$DISTRO_VERSION_ID=$(packagecloud_distro_version_id)
+
+	echo "Publishing as $PACKAGECLOUD_ID to $PACKAGECLOUD_PATH for distro $DISTRO_VERSION_ID"
+
+	for RPM_FILE in $(ls "$RPMBUILD_DIR"/RPMS/x86_64/clickhouse*.rpm); do
+		# Path to RPM file to publish
+		$RPM_FILE_PATH="$RPMBUILD_DIR/RPMS/x86_64/$RPM_FILE"
+		packagecloud_publich_file $PACKAGECLOUD_ID $PACKAGECLOUD_PATH $DISTRO_VERSION_ID $RPM_FILE_PATH
+	done
+}
+
 function publish_packages {
   mkdir /tmp/clickhouse-repo
   rm -rf /tmp/clickhouse-repo/*
@@ -429,7 +508,7 @@ function usage()
 	echo "Usage:"
 	echo "./build.sh all - install packages and build RPMs"
 	echo "./build.sh rpms - do not install  packages, just build rpms"
-	echo "./build.sh publish - publish packages"
+	echo "./build.sh publish packagecloud <packagecloud USER ID> - publish packages on packagecloud as USER"
 	
 	exit 0
 }
@@ -458,7 +537,12 @@ elif [ "$COMMAND" == "rpms" ]; then
 	build_packages
 
 elif [ "$COMMAND" == "publish" ]; then
-	publish_packages
+	$PUBLISH_TARGET="$2"
+	if [ "$PUBLISH_TARGET" == "packagecloud" ]; then
+		# Packagecloud user id. Ex.: 123ab45678c9012d3e4567890abcdef1234567890abcdef1
+		$PACKAGECLOUD_ID=$3
+		packagecloud_publish $PACKAGECLOUD_ID
+	fi
 
 else
 	# unknown command
