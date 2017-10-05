@@ -486,7 +486,13 @@ function packagecloud_publish()
 
 	for RPM_FILE in $(ls "$RPMBUILD_DIR"/RPMS/x86_64/clickhouse*.rpm); do
 		# Path to RPM file to publish
-		RPM_FILE_PATH="$RPMBUILD_DIR/RPMS/x86_64/$RPM_FILE"
+		if [[ "$RPM_FILE" = /* ]]; then
+			# already absolute path
+			RPM_FILE_PATH="$RPM_FILE"
+		else
+			# relative path
+			RPM_FILE_PATH="$RPMBUILD_DIR/RPMS/x86_64/$RPM_FILE"
+		fi
 		packagecloud_publish_file $PACKAGECLOUD_ID $PACKAGECLOUD_PATH $DISTRO_VERSION_ID $RPM_FILE_PATH
 	done
 }
