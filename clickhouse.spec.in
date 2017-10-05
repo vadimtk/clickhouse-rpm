@@ -128,6 +128,7 @@ rm -rf %{buildroot}/usr/local
 rm -rf %{buildroot}
 
 %post compressor
+# include/source spec functions
 @CLICKHOUSE_SPEC_FUNCS_SH@
 
 create_system_user $CLICKHOUSE_USER $CLICKHOUSE_GROUP $CLICKHOUSE_DATADIR
@@ -139,6 +140,7 @@ if [ $1 = 1 ]; then
 	/sbin/chkconfig --add clickhouse-server
 fi
 
+# include/source spec functions
 @CLICKHOUSE_SPEC_FUNCS_SH@
 
 create_system_user $CLICKHOUSE_USER $CLICKHOUSE_GROUP $CLICKHOUSE_DATADIR
@@ -174,19 +176,18 @@ if [ $1 -ge 1 ]; then
 fi
 
 %files server-common
-/etc/clickhouse-server/config.xml
-/etc/clickhouse-server/users.xml
+%config(noreplace) /etc/clickhouse-server/config.xml
+%config(noreplace) /etc/clickhouse-server/users.xml
 
 %files server
+%config(noreplace) /etc/security/limits.d/clickhouse.conf
 /etc/cron.d/clickhouse-server
 /etc/init.d/clickhouse-server
-/etc/security/limits.d/clickhouse.conf
 /usr/bin/clickhouse
 /usr/bin/clickhouse-server
 /usr/share/clickhouse
 
 %files client
-#/etc/clickhouse-client/config.xml
 /usr/bin/clickhouse-client
 
 %files compressor
