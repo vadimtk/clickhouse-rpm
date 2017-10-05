@@ -174,13 +174,13 @@ if [ $1 -ge 1 ]; then
 fi
 
 %files server-common
-/etc/clickhouse-server/config.xml
-/etc/clickhouse-server/users.xml
+%config(noreplace) /etc/clickhouse-server/config.xml
+%config(noreplace) /etc/clickhouse-server/users.xml
 
 %files server
+%config(noreplace) /etc/security/limits.d/clickhouse.conf
 /etc/cron.d/clickhouse-server
 /etc/init.d/clickhouse-server
-/etc/security/limits.d/clickhouse.conf
 /usr/bin/clickhouse
 /usr/bin/clickhouse-server
 /usr/share/clickhouse
