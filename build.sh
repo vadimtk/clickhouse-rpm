@@ -458,14 +458,14 @@ function packagecloud_publish_file()
 	# Path to RPM file to publish
 	RPM_FILE_PATH=$4
 
-	echo -n "Publishing file: $RPM_FILE_PATH "
-	if curl -v -X POST https://$PACKAGECLOUD_ID:@packagecloud.io/api/v1/repos/$PACKAGECLOUD_PATH/packages.json \
+	echo -n "Publishing file: $RPM_FILE_PATH"
+	if curl --show-error --silent -X POST https://$PACKAGECLOUD_ID:@packagecloud.io/api/v1/repos/$PACKAGECLOUD_PATH/packages.json \
 		-F "package[distro_version_id]=$DISTRO_VERSION_ID" \
 		-F "package[package_file]=@$RPM_FILE_PATH"; 
 	then
-		echo "OK"
+		echo "...OK"
 	else
-		echo "FAILED"
+		echo "...FAILED"
 	fi
 }
 
