@@ -479,14 +479,15 @@ function packagecloud_publish()
 	PACKAGECLOUD_PATH="altinity/clickhouse"
 
 	# Packagecloud distro version id. See packagecloud_distro_version_id() function. Ex.: 27
-	DISTRO_VERSION_ID=$(packagecloud_distro_version_id)
+	packagecloud_distro_version_id
+	DISTRO_VERSION_ID=$?
 
 	echo "Publishing as $PACKAGECLOUD_ID to $PACKAGECLOUD_PATH for distro $DISTRO_VERSION_ID"
 
 	for RPM_FILE in $(ls "$RPMBUILD_DIR"/RPMS/x86_64/clickhouse*.rpm); do
 		# Path to RPM file to publish
 		RPM_FILE_PATH="$RPMBUILD_DIR/RPMS/x86_64/$RPM_FILE"
-		packagecloud_publich_file $PACKAGECLOUD_ID $PACKAGECLOUD_PATH $DISTRO_VERSION_ID $RPM_FILE_PATH
+		packagecloud_publish_file $PACKAGECLOUD_ID $PACKAGECLOUD_PATH $DISTRO_VERSION_ID $RPM_FILE_PATH
 	done
 }
 
