@@ -228,7 +228,7 @@ function list_SRPMs()
 	echo "### $SRPMS_DIR/clickhouse*                         ###"
 	echo "######################################################"
 
-	ls -l "$SRPMSD_DIR"/clickhouse*
+	ls -l "$SRPMS_DIR"/clickhouse*
 
 	echo "######################################################"
 }
