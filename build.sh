@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # Yandex ClickHouse DBMS build script for RHEL based distributions
 #
@@ -29,20 +30,38 @@
 # limitations under the License.
 
 # Git version of ClickHouse that we package
-CH_VERSION="1.1.54292"
+CH_VERSION="${CH_VERSION:-1.1.54292}"
 
 # Git tag marker (stable/testing)
-CH_TAG="stable"
-#CH_TAG="testing"
+CH_TAG="${CH_TAG:-stable}"
+#CH_TAG="${CH_TAG:-testing}"
+
+# Hostname of the server used to publish packages
+SSH_REPO_SERVER="${SSH_REPO_SERVER:-10.81.1.162}"
+
+# SSH username used to publish packages
+SSH_REPO_USER="${SSH_REPO_USER:-clickhouse}"
+
+# Root directory for repositories on the server used to publish packages
+SSH_REPO_ROOT="${SSH_REPO_ROOT:-/var/www/html/repos/clickhouse}"
 
 # Current work dir
-CWD_DIR=`pwd`
+CWD_DIR=$(pwd)
+
+# Source files dir
+SRC_DIR="$CWD_DIR/src"
 
 # Where runtime data would be kept
 RUNTIME_DIR="$CWD_DIR/runtime"
 
 # Where RPMs would be built
 RPMBUILD_DIR="$RUNTIME_DIR/rpmbuild"
+
+# Where build RPM files would be kept
+RPMS_DIR="$RPMBUILD_DIR/RPMS/x86_64"
+
+# Where built SRPM files would be kept
+SRPMS_DIR="$RPMBUILD_DIR/SRPMS"
 
 # Where RPM spec file would be kept
 RPMSPEC_DIR="$RUNTIME_DIR/rpmspec"
@@ -53,155 +72,19 @@ export THREADS=$(grep -c ^processor /proc/cpuinfo)
 # Build most libraries using default GCC
 export PATH=${PATH/"/usr/local/bin:"/}:/usr/local/bin
 
-
-##
-## Print error message and exit with exit code 1
-##
-function os_unsupported()
-{
-	echo "This OS is not supported. However, you can set 'OS' and 'DISTR' ENV vars manually."
-	echo "Can't continue, exit"
-
-	exit 1
-}
-
-##
-## is OS YUM-based?
-##
-function os_yum_based()
-{
-	[ "$OS" == "rhel" ] || [ "$OS" == "centos" ] || [ "$OS" == "fedora" ]
-}
-
-##
-## is OS Red Hat Enterprise Linux?
-##
-function os_rhel()
-{
-	[ "$OS" == "rhel" ] || [ "$OS" == "redhatenterpriseserver" ]
-}
-
-##
-## is OS CenOS?
-##
-function os_centos()
-{
-	[ "$OS" == "centos" ]
-}
-
-##
-## is OS Fedora?
-##
-function os_fedora()
-{
-	[ "$OS" == "fedora" ]
-}
-
-##
-## is OS APT-based?
-##
-function os_apt_based()
-{
-	[ "$OS" == "ubuntu" ] || [ "$OS" == "linuxmint" ]
-}
-
-##
-## is OS RPM-based?
-##
-function os_rpm_based()
-{
-	os_yum_based
-}
-
-##
-## Detect OS. Results are written into
-## $OS - string lowercased codename ex: centos, linuxmint
-## $DISTR_MAJOR - int major version ex: 7 for CentOS 7.3, 18 for Linux Mint 18
-## $DISTR_MINOR - int minor version ex: 3 for centos 7.3, Empty "" for Linux Mint 18
-##
-function os_detect()
-{
-	if [ -n "$OS" ] && [ -n "$DISTR_MAJOR" ]; then
-		# looks like all is explicitly set
-		echo "OS specified: $OS $DISTR_MAJOR $DISTR_MINOR"
-		return
-	fi
-
-	# OS or DIST are NOT specified
-	# let's try to figure out what exactly are we running on
-
-	if [ -e /etc/os-release ]; then
-		# nice, can simply source OS specification
-		. /etc/os-release
-			
-		# OS=linuxmint
-		OS=${ID}
-
-		# need to parse "18.2"
-		# DISTR_MAJOR=18
-		# DISTR_MINOR=2
-		DISTR_MAJOR=`echo ${VERSION_ID} | awk -F '.' '{ print $1 }'`
-		DISTR_MINOR=`echo ${VERSION_ID} | awk -F '.' '{ print $2 }'`
-
-	elif command -v lsb_release > /dev/null; then
-		# something like Ubuntu
-
-		# need to parse "Distributor ID:	LinuxMint"
-		# OS=linuxmint
-		OS=`lsb_release -i | cut -f2 | awk '{ print tolower($1) }'`
-
-		# need to parse "Release:	18.2"
-		# DISTR_MAJOR=18
-		# DISTR_MINOR=2
-		DISTR_MAJOR=`lsb_release -r | cut -f2 | awk -F '.' '{ print $1 }'`
-		DISTR_MINOR=`lsb_release -r | cut -f2 | awk -F '.' '{ print $2 }'`
-
-	elif [ -e /etc/centos-release ]; then
-		OS='centos'
-
-		# need to parse "CentOS release 6.9 (Final)"
-		# DISTR_MAJOR=6
-		# DISTR_MINOR=9
-       		DISTR_MAJOR=`cat /etc/centos-release | awk '{ print $3 }' | awk -F '.' '{ print $1 }'`
-       		DISTR_MINOR=`cat /etc/centos-release | awk '{ print $3 }' | awk -F '.' '{ print $2 }'`
-
-	elif [ -e /etc/fedora-release ]; then
-		OS='fedora'
-
-		# need to parse "Fedora release 26 (Twenty Six)"
-		# DISTR_MAJOR=26
-		# DISTR_MINOR=""
-		DISTR_MAJOR=`cut -f3 --delimiter=' ' /etc/fedora-release`
-		DISTR_MINOR=""
-
-	elif [ -e /etc/redhat-release ]; then
-		# need to parse "CentOS Linux release 7.3.1611 (Core)"
-		# OS=centos
-		OS=`cat /etc/redhat-release  | awk '{ print tolower($1) }'`
-
-		# need to parse "CentOS Linux release 7.3.1611 (Core)"
-		# DISTR_MAJOR=7
-		# DISTR_MINOR=3
-       		DISTR_MAJOR=`cat /etc/redhat-release | awk '{ print $4 }' | awk -F '.' '{ print $1 }'`
-       		DISTR_MINOR=`cat /etc/redhat-release | awk '{ print $4 }' | awk -F '.' '{ print $2 }'`
-
-	else
-		# do not know this OS
-		os_unsupported
-	fi
-
-	echo "OS detected: $OS $DISTR_MAJOR $DISTR_MINOR"
-}
-
+# Source libraries
+. ./src/os.lib.sh
+. ./src/publish_packagecloud.lib.sh
+. ./src/publish_ssh.lib.sh
 
 ##
 ## Install all required components before building RPMs
 ##
 function install_dependencies()
 {
-	echo "#############################"
-	echo "### Install dependencies  ###"
-	echo "#############################"
+	echo "############################"
+	echo "### Install dependencies ###"
+	echo "############################"
 	
 	echo "####################################"
 	echo "### Install development packages ###"
@@ -327,10 +210,10 @@ function list_RPMs()
 {
 	echo "######################################################"
 	echo "### Looking for RPMs at                            ###"
-	echo "### $RPMBUILD_DIR/RPMS/x86_64/clickhouse*"
+	echo "### $RPMS_DIR/clickhouse*.rpm                      ###"
 	echo "######################################################"
 
-	ls -l "$RPMBUILD_DIR"/RPMS/x86_64/clickhouse*.rpm
+	ls -l "$RPMS_DIR"/clickhouse*.rpm
 
 	echo "######################################################"
 }
@@ -342,10 +225,10 @@ function list_SRPMs()
 {
 	echo "######################################################"
 	echo "### Looking for sRPMs at                           ###"
-	echo "### $RPMBUILD_DIR/SRPMS/clickhouse*"
+	echo "### $SRPMS_DIR/clickhouse*                         ###"
 	echo "######################################################"
 
-	ls -l "$RPMBUILD_DIR"/SRPMS/clickhouse*
+	ls -l "$SRPMSD_DIR"/clickhouse*
 
 	echo "######################################################"
 }
@@ -361,8 +244,8 @@ function build_packages()
 	mkdir -p "$RPMSPEC_DIR"
 
 	echo "Clean up after previous run"
-	rm -f "$RPMBUILD_DIR"/RPMS/x86_64/clickhouse*
-	rm -f "$RPMBUILD_DIR"/SRPMS/clickhouse*
+	rm -f "$RPMS_DIR"/clickhouse*
+	rm -f "$SRPMS_DIR"/clickhouse*
 	rm -f "$RPMSPEC_DIR"/*.spec
 
 	echo "Configure RPM build environment"
@@ -378,11 +261,11 @@ function build_packages()
 	wget --progress=dot:giga "https://github.com/yandex/ClickHouse/archive/v$CH_VERSION-$CH_TAG.zip" --output-document="$RPMBUILD_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG.zip"
 
 	# Create spec file from template
-	cat "$CWD_DIR/clickhouse.spec.in" | sed \
+	cat "$SRC_DIR/clickhouse.spec.in" | sed \
 		-e "s/@CH_VERSION@/$CH_VERSION/" \
 		-e "s/@CH_TAG@/$CH_TAG/" \
 		-e "/@CLICKHOUSE_SPEC_FUNCS_SH@/ { 
-r $CWD_DIR/clickhouse.spec.funcs.sh
+r $SRC_DIR/clickhouse.spec.funcs.sh
 d }" \
 		> "$RPMSPEC_DIR/clickhouse.spec"
  
@@ -411,110 +294,17 @@ d }" \
 	list_SRPMs
 }
 
-function packagecloud_distro_version_id()
-{
-	# EL6  - 27
-	# EL7  - 140
-	# FC25 - 179
-	# FC26 - 184
-	# JAVA - 167
-
-	if os_centos; then
-		if [ $DISTR_MAJOR == 6 ]; then
-			return 27
-		elif [ $DISTR_MAJOR == 7 ]; then
-			return 140
-		else
-			echo "Unknown centos distro"
-			exit 1
-		fi
-	elif os_fedora; then
-		if [ $DISTR_MAJOR == 25 ]; then
-			return 179
-		elif [ $DISTR_MAJOR == 26 ]; then
-			return 184
-		else
-			echo "Unknown fedora distro"
-			exit 1
-		fi
-	fi
-
-	# not found what OS are we running on
-	echo "Unknown OS"
-	exit 1
-}
-
-function packagecloud_publish_file()
-{
-	# Packagecloud user id. Ex.: 123ab45678c9012d3e4567890abcdef1234567890abcdef1
-	PACKAGECLOUD_ID=$1
-
-	# Path inside user's repo on packagecloud. Ex.: altinity/clickhouse
-	PACKAGECLOUD_PATH=$2
-
-	# Packagecloud distro version id. See packagecloud_distro_version_id() function. Ex.: 27
-	DISTRO_VERSION_ID=$3
-
-	# Path to RPM file to publish
-	RPM_FILE_PATH=$4
-
-	echo -n "Publishing file: $RPM_FILE_PATH"
-	if curl --show-error --silent --output /dev/null -X POST https://$PACKAGECLOUD_ID:@packagecloud.io/api/v1/repos/$PACKAGECLOUD_PATH/packages.json \
-		-F "package[distro_version_id]=$DISTRO_VERSION_ID" \
-		-F "package[package_file]=@$RPM_FILE_PATH"; 
-	then
-		echo "...OK"
-	else
-		echo "...FAILED"
-	fi
-}
-
-function packagecloud_publish()
-{
-	# Packagecloud user id. Ex.: 123ab45678c9012d3e4567890abcdef1234567890abcdef1
-	PACKAGECLOUD_ID=$1
-
-	# Path inside user's repo on packagecloud. Ex.: altinity/clickhouse
-	PACKAGECLOUD_PATH="altinity/clickhouse"
-
-	# Packagecloud distro version id. See packagecloud_distro_version_id() function. Ex.: 27
-	packagecloud_distro_version_id
-	DISTRO_VERSION_ID=$?
-
-	echo "Publishing as $PACKAGECLOUD_ID to $PACKAGECLOUD_PATH for distro $DISTRO_VERSION_ID"
-
-	for RPM_FILE in $(ls "$RPMBUILD_DIR"/RPMS/x86_64/clickhouse*.rpm); do
-		# Path to RPM file to publish
-		if [[ "$RPM_FILE" = /* ]]; then
-			# already absolute path
-			RPM_FILE_PATH="$RPM_FILE"
-		else
-			# relative path
-			RPM_FILE_PATH="$RPMBUILD_DIR/RPMS/x86_64/$RPM_FILE"
-		fi
-		packagecloud_publish_file $PACKAGECLOUD_ID $PACKAGECLOUD_PATH $DISTRO_VERSION_ID $RPM_FILE_PATH
-	done
-}
-
-function publish_packages {
-  mkdir /tmp/clickhouse-repo
-  rm -rf /tmp/clickhouse-repo/*
-  cp $RPMBUILD_DIR/RPMS/x86_64/clickhouse*.rpm /tmp/clickhouse-repo
-  if ! createrepo /tmp/clickhouse-repo; then exit 1; fi
-
-  if ! scp -B -r /tmp/clickhouse-repo $REPO_USER@$REPO_SERVER:/tmp/clickhouse-repo; then exit 1; fi
-  if ! ssh $REPO_USER@$REPO_SERVER "rm -rf $REPO_ROOT/$CH_TAG/el$DISTR_MAJOR && mv /tmp/clickhouse-repo $REPO_ROOT/$CH_TAG/el$DISTR_MAJOR"; then exit 1; fi
-}
-
 ##
 ##
 ##
 function usage()
 {
 	echo "Usage:"
-	echo "./build.sh all - install packages and build RPMs"
-	echo "./build.sh rpms - do not install  packages, just build rpms"
+	echo "./build.sh all - install dependencies and build RPMs"
+	echo "./build.sh install - do not build RPMs, just install dependencies"
+	echo "./build.sh rpms - do not install dependencies, just build RPMs"
 	echo "./build.sh publish packagecloud <packagecloud USER ID> - publish packages on packagecloud as USER"
+	echo "./build.sh publish ssh - publish packages via SSH"
 	
 	exit 0
 }
@@ -539,6 +329,9 @@ if [ "$COMMAND" == "all" ]; then
 	install_dependencies
 	build_packages
 
+elif [ "$COMMAND" == "install" ]; then
+	install_dependencies
+
 elif [ "$COMMAND" == "rpms" ]; then
 	build_packages
 
@@ -547,7 +340,14 @@ elif [ "$COMMAND" == "publish" ]; then
 	if [ "$PUBLISH_TARGET" == "packagecloud" ]; then
 		# Packagecloud user id. Ex.: 123ab45678c9012d3e4567890abcdef1234567890abcdef1
 		PACKAGECLOUD_ID=$3
-		packagecloud_publish $PACKAGECLOUD_ID
+		publish_packagecloud $PACKAGECLOUD_ID
+
+	elif [ "$PUBLISH_TARGET" == "ssh" ]; then
+		publish_ssh
+
+	else
+		echo "Unknown publish target"
+		usage
 	fi
 
 else
