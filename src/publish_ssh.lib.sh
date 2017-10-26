@@ -28,17 +28,17 @@ function publish_ssh()
 	cp "$RPMS_DIR"/clickhouse*.rpm "$LOCAL_REPO_TMP_DIR"
 	if ! createrepo "$LOCAL_REPO_TMP_DIR"; then
 		echo "Unable to create repo in $LOCAL_REPO_TMP_DIR"
-		exit 1;
+		exit 1
 	fi
 
 	if ! scp -B -r "$LOCAL_REPO_TMP_DIR" $SSH_REPO_USER@$SSH_REPO_SERVER:"$REMOTE_REPO_TMP_DIR"; then
 		echo "Unable to copy repo from $LOCAL_REPO_TMP_DIR to $SSH_REPO_USER@$SSH_REPO_SERVER:$REMOTE_REPO_TMP_DIR"
-		exit 2;
+		exit 2
 	fi
 
 	if ! ssh $SSH_REPO_USER@$SSH_REPO_SERVER "rm -rf $SSH_REPO_ROOT/$CH_TAG/el$DISTR_MAJOR && mv $REMOTE_REPO_TMP_DIR $SSH_REPO_ROOT/$CH_TAG/el$DISTR_MAJOR"; then
 		echo "Unable to move repo on remote server"
-		exit 3;
+		exit 3
 	fi
 }
 
