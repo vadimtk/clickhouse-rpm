@@ -300,8 +300,9 @@ d }" \
 function usage()
 {
 	echo "Usage:"
-	echo "./build.sh all - install packages and build RPMs"
-	echo "./build.sh rpms - do not install  packages, just build rpms"
+	echo "./build.sh all - install dependencies and build RPMs"
+	echo "./build.sh install - do not build RPMs, just install dependencies"
+	echo "./build.sh rpms - do not install dependencies, just build RPMs"
 	echo "./build.sh publish packagecloud <packagecloud USER ID> - publish packages on packagecloud as USER"
 	echo "./build.sh publish ssh - publish packages via SSH"
 	
@@ -327,6 +328,9 @@ COMMAND="$1"
 if [ "$COMMAND" == "all" ]; then
 	install_dependencies
 	build_packages
+
+elif [ "$COMMAND" == "install" ]; then
+	install_dependencies
 
 elif [ "$COMMAND" == "rpms" ]; then
 	build_packages
