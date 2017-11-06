@@ -269,6 +269,35 @@ function prepare_sources()
 ##
 ## Build RPMs
 ##
+function build_RPMs()
+{
+	echo "###############################"
+	echo "### Setup path to compilers ###"
+	echo "###############################"
+
+	export CC=gcc
+	export CXX=g++
+	if [ $DISTR_MAJOR == 6 ] || [ $DISTR_MAJOR == 7 ]; then
+		export CC=/opt/rh/devtoolset-6/root/usr/bin/gcc
+		export CXX=/opt/rh/devtoolset-6/root/usr/bin/g++
+	fi
+	echo "CC=$CC"
+	echo "CXX=$CXX"
+
+	# Build RPMs
+	echo "rpmbuild $CH_VERSION-$CH_TAG"
+	rpmbuild -bs "$RPMSPEC_DIR/clickhouse.spec"
+	rpmbuild -bb "$RPMSPEC_DIR/clickhouse.spec"
+	echo "rpmbuild completed $CH_VERSION-$CH_TAG"
+}
+
+##
+## Build packages:
+## 1. clean folders
+## 2. prepare sources
+## 3. build spec file
+## 4. build RPMs
+##
 function build_packages()
 {
 
@@ -302,25 +331,8 @@ r $SRC_DIR/clickhouse.spec.funcs.sh
 d }" \
 		> "$RPMSPEC_DIR/clickhouse.spec"
  
-
-	echo "###############################"
-	echo "### Setup path to compilers ###"
-	echo "###############################"
-
-	export CC=gcc
-	export CXX=g++
-	if [ $DISTR_MAJOR == 6 ] || [ $DISTR_MAJOR == 7 ]; then
-		export CC=/opt/rh/devtoolset-6/root/usr/bin/gcc
-		export CXX=/opt/rh/devtoolset-6/root/usr/bin/g++
-	fi
-	echo "CC=$CC"
-	echo "CXX=$CXX"
-
-	# Build RPMs
-	echo "rpmbuild $CH_VERSION-$CH_TAG"
-	rpmbuild -bs "$RPMSPEC_DIR/clickhouse.spec"
-	rpmbuild -bb "$RPMSPEC_DIR/clickhouse.spec"
-	echo "rpmbuild completed $CH_VERSION-$CH_TAG"
+	# Compile sources and build RPMS
+	build_RPMs
 
 	# Display results
 	list_RPMs
@@ -336,6 +348,7 @@ function usage()
 	echo "./build.sh all - install dependencies and build RPMs"
 	echo "./build.sh install - do not build RPMs, just install dependencies"
 	echo "./build.sh rpms - do not install dependencies, just build RPMs"
+	echo "./build.sh compile - do not install dependencies, do not create SPEC file, just build RPMs"
 	echo "./build.sh publish packagecloud <packagecloud USER ID> - publish packages on packagecloud as USER"
 	echo "./build.sh publish ssh - publish packages via SSH"
 	
@@ -367,6 +380,9 @@ elif [ "$COMMAND" == "install" ]; then
 
 elif [ "$COMMAND" == "rpms" ]; then
 	build_packages
+
+elif [ "$COMMAND" == "compile" ]; then
+	build_RPMs
 
 elif [ "$COMMAND" == "publish" ]; then
 	PUBLISH_TARGET="$2"
