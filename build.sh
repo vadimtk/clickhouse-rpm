@@ -250,15 +250,20 @@ function prepare_sources()
 
 	elif [ "$USE_SOURCES_FROM" == "git" ]; then
 		echo "Cloning from github v$CH_VERSION-$CH_TAG.zip into $RPMBUILD_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG"
+		echo "cd into $RPMBUILD_DIR/SOURCES"
+
+		cd "$RPMBUILD_DIR/SOURCES"
 
 		# Clone specified branch with all submodules into $RPMBUILD_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG folder
-		git clone --recursive --branch "v$CH_VERSION-$CH_TAG" "https://github.com/yandex/ClickHouse" "$RPMBUILD_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG"
+		git clone --recursive --branch "v$CH_VERSION-$CH_TAG" "https://github.com/yandex/ClickHouse" "ClickHouse-$CH_VERSION-$CH_TAG"
 
 		# Move files into .zip with minimal compression
-		zip -r0m "$RPMBUILD_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG.zip" "$RPMBUILD_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG"
+		zip -r0m "ClickHouse-$CH_VERSION-$CH_TAG.zip" "ClickHouse-$CH_VERSION-$CH_TAG"
 
 		echo "Ensure .zip file is available"
-		ls -l "$RPMBUILD_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG.zip"
+		ls -l "ClickHouse-$CH_VERSION-$CH_TAG.zip"
+
+		cd "$CWD_DIR"
 
 	else
 		echo "Unknows sources"
@@ -283,6 +288,9 @@ function build_RPMs()
 	fi
 	echo "CC=$CC"
 	echo "CXX=$CXX"
+
+	echo "cd into $CWD_DIR"
+	cd "$CWD_DIR"
 
 	# Build RPMs
 	echo "rpmbuild $CH_VERSION-$CH_TAG"
@@ -317,7 +325,6 @@ function build_packages()
 	echo "###########################"
 	echo "### Create RPM packages ###"
 	echo "###########################"
-	cd "$RPMSPEC_DIR"
 	
 	# Prepare $RPMBUILD_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG.zip file
 	prepare_sources
