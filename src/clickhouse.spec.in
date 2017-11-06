@@ -72,10 +72,21 @@ Summary: %{name} compressor binary
 This package contains compressor utility for ClickHouse DBMS.
 
 %prep
-# see available macros spec
 # @CH_VERSION@="1.1.54289"
 # @CH_TAG@="stable"
+# Ensure source code is in BUILD/ClickHouse-%{version}-@CH_TAG@ folder
+# Prepare source code for being built
+
+# Prepare .zip release source file
+# Delete BUILD/ClickHouse-%{version}-@CH_TAG@ folder, copy .zip file from SOURSES to BUILD, unpack .zip file and cd into BUILD/ClickHouse-%{version}-@CH_TAG@, which is expected to be in .zip file
 %setup -q -n ClickHouse-%{version}-@CH_TAG@
+
+# Prepare sources from 'git clone'
+# Sources are already expected to be located in BUILD/ClickHouse-%{version}-@CH_TAG@
+# Do not delete ClickHouse-%{version}-@CH_TAG@ folder, ido not cope, do not unpack .zip archives, just cd into BUILD/ClickHouse-%{version}-@CH_TAG@
+#%setup -D -T -n ClickHouse-%{version}-@CH_TAG@
+
+# we are in BUILD/ClickHouse-%{version}-@CH_TAG@ folder now
 CH_VERSION=@CH_VERSION@
 CH_VERSION_ARR=(${CH_VERSION//./ })
 # prepare cmake files
@@ -85,6 +96,8 @@ sed -i -- "s/VERSION_REVISION .*)/VERSION_REVISION ${CH_VERSION_ARR[2]})/g"   db
 sed -i -- "s/VERSION_DESCRIBE .*)/VERSION_DESCRIBE v@CH_VERSION@-@CH_TAG@)/g" dbms/cmake/version.cmake
 
 %build
+# we are in BUILD/ClickHouse-%{version}-@CH_TAG@ folder now
+
 rm -rf build
 mkdir build
 cd build

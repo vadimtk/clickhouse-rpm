@@ -36,6 +36,10 @@ CH_VERSION="${CH_VERSION:-1.1.54310}"
 CH_TAG="${CH_TAG:-stable}"
 #CH_TAG="${CH_TAG:-testing}"
 
+# What sources are we going to compile - either download ready release file OR use 'git clone'
+#USE_SOURCES_FROM="releasefile"
+USE_SOURCES_FROM="git"
+
 # Hostname of the server used to publish packages
 SSH_REPO_SERVER="${SSH_REPO_SERVER:-10.81.1.162}"
 
@@ -233,6 +237,34 @@ function list_SRPMs()
 	echo "######################################################"
 }
 
+
+##
+## Prepare $RPMBUILD_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG.zip file
+##
+function prepare_sources()
+{
+	if [ "$USE_SOURCES_FROM" == "releasefile" ]; then
+		echo "Downloading ClickHouse source archive v$CH_VERSION-$CH_TAG.zip"
+		wget --progress=dot:giga "https://github.com/yandex/ClickHouse/archive/v$CH_VERSION-$CH_TAG.zip" --output-document="$RPMBUILD_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG.zip"
+
+	elif [ "$USE_SOURCES_FROM" == "git" ]; then
+		echo "Cloning from github v$CH_VERSION-$CH_TAG.zip into $RPMBUILD_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG"
+
+		# Clone specified branch with all submodules into $RPMBUILD_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG folder
+		git clone --recursive --branch "v$CH_VERSION-$CH_TAG" "https://github.com/yandex/ClickHouse" "$RPMBUILD_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG"
+
+		# Move files into .zip with minimal compression
+		zip -r0m "$RPMBUILD_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG.zip" "$RPMBUILD_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG"
+
+		echo "Ensure .zip file is available"
+		ls -l "$RPMBUILD_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG.zip"
+
+	else
+		echo "Unknows sources"
+		exit 1
+	fi
+}
+
 ##
 ## Build RPMs
 ##
@@ -257,8 +289,8 @@ function build_packages()
 	echo "###########################"
 	cd "$RPMSPEC_DIR"
 	
-	# Download ClickHouse source archive
-	wget --progress=dot:giga "https://github.com/yandex/ClickHouse/archive/v$CH_VERSION-$CH_TAG.zip" --output-document="$RPMBUILD_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG.zip"
+	# Prepare $RPMBUILD_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG.zip file
+	prepare_sources
 
 	# Create spec file from template
 	cat "$SRC_DIR/clickhouse.spec.in" | sed \
