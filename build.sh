@@ -258,7 +258,7 @@ function prepare_sources()
 		git clone --recursive --branch "v$CH_VERSION-$CH_TAG" "https://github.com/yandex/ClickHouse" "ClickHouse-$CH_VERSION-$CH_TAG"
 
 		# Move files into .zip with minimal compression
-		zip -r0m "ClickHouse-$CH_VERSION-$CH_TAG.zip" "ClickHouse-$CH_VERSION-$CH_TAG"
+		zip -r0mq "ClickHouse-$CH_VERSION-$CH_TAG.zip" "ClickHouse-$CH_VERSION-$CH_TAG"
 
 		echo "Ensure .zip file is available"
 		ls -l "ClickHouse-$CH_VERSION-$CH_TAG.zip"
