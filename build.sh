@@ -104,6 +104,7 @@ function install_dependencies()
 		make gcc-c++ \
 		wget \
 		subversion git \
+		zip \
 		readline-devel glib2-devel unixODBC-devel \
 		python-devel openssl-devel libicu-devel \
 		zlib-devel libtool-ltdl-devel xz-devel
