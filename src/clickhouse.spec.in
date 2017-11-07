@@ -101,7 +101,7 @@ sed -i -- "s/VERSION_DESCRIBE .*)/VERSION_DESCRIBE v@CH_VERSION@-@CH_TAG@)/g" db
 rm -rf build
 mkdir build
 cd build
-cmake .. -DCMAKE_BUILD_TYPE:STRING=Release
+$CMAKE .. -DCMAKE_BUILD_TYPE:STRING=Release
 make %{?_smp_mflags}
 cd ..
 
@@ -111,7 +111,7 @@ rm -rf %{buildroot}
 cd build
 DAEMONS="clickhouse clickhouse-compressor clickhouse-client clickhouse-server"
 for daemon in $DAEMONS; do \
-        DESTDIR=%{buildroot} cmake -DCOMPONENT=$daemon -P cmake_install.cmake; \
+        DESTDIR=%{buildroot} $CMAKE -DCOMPONENT=$daemon -P cmake_install.cmake; \
 done
 cd ..
 
