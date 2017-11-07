@@ -102,9 +102,8 @@ function install_dependencies()
 	if ! sudo yum -y install $DISTRO_PACKAGES \
 		m4 rpm-build redhat-rpm-config createrepo \
 		cmake make gcc-c++ \
-		wget \
+		zip wget \
 		subversion git \
-		zip \
 		readline-devel glib2-devel unixODBC-devel \
 		python-devel openssl-devel libicu-devel \
 		zlib-devel libtool-ltdl-devel xz-devel
@@ -209,13 +208,6 @@ gpgcheck=1
 EOF"
 
 	sudo yum install -y MariaDB-devel MariaDB-shared
-
-	echo "#####################"
-	echo "### Install cmake ###"
-	echo "#####################"
-
-	sudo yum install -y cmake
-	#scl enable devtoolset-6 bash
 }
 
 ##
