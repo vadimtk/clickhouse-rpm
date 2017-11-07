@@ -101,7 +101,7 @@ function install_dependencies()
 
 	if ! sudo yum -y install $DISTRO_PACKAGES \
 		m4 rpm-build redhat-rpm-config createrepo \
-		make gcc-c++ \
+		cmake make gcc-c++ \
 		wget \
 		subversion git \
 		zip \
@@ -131,13 +131,23 @@ function install_dependencies()
 	echo "### Install GCC ###"
 	echo "###################"
 
-	if [ $DISTR_MAJOR == 7 ]; then
-		# Connect EPEL repository for CentOS 7 (for scons)
-		if ! sudo yum -y --nogpgcheck install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm; then
+	if [ $DISTR_MAJOR == 6 ] || [ $DISTR_MAJOR == 7 ]; then
+		# CentOS 6/7
+		# RHEL 6/7
+
+		# Connect EPEL repository
+		if ! sudo yum -y --nogpgcheck install https://dl.fedoraproject.org/pub/epel/epel-release-latest-$DISTR_MAJOR.noarch.rpm; then
 			echo "FAILED to install epel"
 			exit 1
 		fi
 
+		if ! sudo yum -y install cmake3; then
+			echo "FAILED to install cmake3"
+			exit 1
+		fi
+	fi
+
+	if [ $DISTR_MAJOR == 7 ]; then
 		if ! sudo yum -y install scons; then
 			echo "FAILED to install scons"
 			exit 1
@@ -280,12 +290,15 @@ function build_RPMs()
 	echo "### Setup path to compilers ###"
 	echo "###############################"
 
+	export CMAKE=cmake
 	export CC=gcc
 	export CXX=g++
 	if [ $DISTR_MAJOR == 6 ] || [ $DISTR_MAJOR == 7 ]; then
+		export CMAKE=cmake3
 		export CC=/opt/rh/devtoolset-6/root/usr/bin/gcc
 		export CXX=/opt/rh/devtoolset-6/root/usr/bin/g++
 	fi
+	echo "CMAKE=$CMAKE"
 	echo "CC=$CC"
 	echo "CXX=$CXX"
 
@@ -354,8 +367,8 @@ function usage()
 	echo "Usage:"
 	echo "./build.sh all - install dependencies and build RPMs"
 	echo "./build.sh install - do not build RPMs, just install dependencies"
-	echo "./build.sh rpms - do not install dependencies, just build RPMs"
-	echo "./build.sh compile - do not install dependencies, do not create SPEC file, just build RPMs"
+	echo "./build.sh spec_rpms - do not install dependencies, just create SPEC file and build RPMs"
+	echo "./build.sh rpms - do not install dependencies, do not create SPEC file, just build RPMs"
 	echo "./build.sh publish packagecloud <packagecloud USER ID> - publish packages on packagecloud as USER"
 	echo "./build.sh publish ssh - publish packages via SSH"
 	
@@ -385,10 +398,10 @@ if [ "$COMMAND" == "all" ]; then
 elif [ "$COMMAND" == "install" ]; then
 	install_dependencies
 
-elif [ "$COMMAND" == "rpms" ]; then
+elif [ "$COMMAND" == "spec_rpms" ]; then
 	build_packages
 
-elif [ "$COMMAND" == "compile" ]; then
+elif [ "$COMMAND" == "rpms" ]; then
 	build_RPMs
 
 elif [ "$COMMAND" == "publish" ]; then
