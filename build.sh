@@ -257,7 +257,7 @@ function prepare_sources()
 		cd "$RPMBUILD_DIR/SOURCES"
 
 		# Clone specified branch with all submodules into $RPMBUILD_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG folder
-		git clone --recursive --branch "v$CH_VERSION-$CH_TAG" "https://github.com/yandex/ClickHouse" "ClickHouse-$CH_VERSION-$CH_TAG"
+		git clone --branch "v$CH_VERSION-$CH_TAG" --single-branch --depth 1 --recursive "https://github.com/yandex/ClickHouse" "ClickHouse-$CH_VERSION-$CH_TAG"
 
 		# Move files into .zip with minimal compression
 		zip -r0mq "ClickHouse-$CH_VERSION-$CH_TAG.zip" "ClickHouse-$CH_VERSION-$CH_TAG"
