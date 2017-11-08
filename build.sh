@@ -105,7 +105,7 @@ function install_dependencies()
 		zip wget \
 		subversion git \
 		readline-devel glib2-devel unixODBC-devel \
-		python-devel openssl-devel libicu-devel \
+		python-devel openssl-devel openssl-static libicu-devel \
 		zlib-devel libtool-ltdl-devel xz-devel
 	then 
 		echo "FAILED to install development packages"
