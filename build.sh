@@ -280,10 +280,10 @@ function build_spec_file()
 {
 	# Create spec file from template
 	cat "$SRC_DIR/clickhouse.spec.in" | sed \
-		-e "s/@CH_VERSION@/$CH_VERSION/" \
-		-e "s/@CH_TAG@/$CH_TAG/" \
-		-e "s/@DEFINE_TOPDIR@/%define _topdir $RPMBUILD_DIR/" \
-		-e "s/@DEFINE_SMP_MFLAGS@/%define _smp_mflags -j$THREADS/" \
+		-e "s|@CH_VERSION@|$CH_VERSION|" \
+		-e "s|@CH_TAG@|$CH_TAG|" \
+		-e "s|@DEFINE_TOPDIR@|%define _topdir $RPMBUILD_DIR|" \
+		-e "s|@DEFINE_SMP_MFLAGS@|%define _smp_mflags -j$THREADS|" \
 		-e "/@CLICKHOUSE_SPEC_FUNCS_SH@/ { 
 r $SRC_DIR/clickhouse.spec.funcs.sh
 d }" \
