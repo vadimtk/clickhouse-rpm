@@ -55,11 +55,8 @@ CWD_DIR=$(pwd)
 # Source files dir
 SRC_DIR="$CWD_DIR/src"
 
-# Where runtime data would be kept
-RUNTIME_DIR="$CWD_DIR/runtime"
-
 # Where RPMs would be built
-RPMBUILD_DIR="$RUNTIME_DIR/rpmbuild"
+RPMBUILD_DIR="$CWD_DIR/rpmbuild"
 
 # Where build RPM files would be kept
 RPMS_DIR="$RPMBUILD_DIR/RPMS/x86_64"
@@ -68,7 +65,7 @@ RPMS_DIR="$RPMBUILD_DIR/RPMS/x86_64"
 SRPMS_DIR="$RPMBUILD_DIR/SRPMS"
 
 # Where RPM spec file would be kept
-RPMSPEC_DIR="$RUNTIME_DIR/rpmspec"
+SPECS_DIR="$RPMBUILD_DIR/SPECS"
 
 # Detect number of threads to run 'make' command
 export THREADS=$(grep -c ^processor /proc/cpuinfo)
@@ -135,9 +132,13 @@ function install_dependencies()
 		# RHEL 6/7
 
 		# Connect EPEL repository
-		if ! sudo yum -y --nogpgcheck install https://dl.fedoraproject.org/pub/epel/epel-release-latest-$DISTR_MAJOR.noarch.rpm; then
-			echo "FAILED to install epel"
-			exit 1
+		if yum list installed epel-release >/dev/null 2>&1; then
+			echo "epel already installed"
+		else
+			if ! sudo yum -y --nogpgcheck install https://dl.fedoraproject.org/pub/epel/epel-release-latest-$DISTR_MAJOR.noarch.rpm; then
+				echo "FAILED to install epel"
+				exit 1
+			fi
 		fi
 
 		if ! sudo yum -y install cmake3; then
@@ -301,8 +302,8 @@ function build_RPMs()
 
 	# Build RPMs
 	echo "rpmbuild $CH_VERSION-$CH_TAG"
-	rpmbuild -bs "$RPMSPEC_DIR/clickhouse.spec"
-	rpmbuild -bb "$RPMSPEC_DIR/clickhouse.spec"
+	rpmbuild -bs "$SPECS_DIR/clickhouse.spec"
+	rpmbuild -bb "$SPECS_DIR/clickhouse.spec"
 	echo "rpmbuild completed $CH_VERSION-$CH_TAG"
 }
 
@@ -318,12 +319,12 @@ function build_packages()
 
 	echo "Prepare dirs"
 	mkdir -p "$RPMBUILD_DIR"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
-	mkdir -p "$RPMSPEC_DIR"
+	mkdir -p "$SPECS_DIR"
 
 	echo "Clean up after previous run"
 	rm -f "$RPMS_DIR"/clickhouse*
 	rm -f "$SRPMS_DIR"/clickhouse*
-	rm -f "$RPMSPEC_DIR"/*.spec
+	rm -f "$SPECS_DIR"/clickhouse.spec
 
 	echo "Configure RPM build environment"
 	echo '%_topdir '"$RPMBUILD_DIR"'
@@ -343,7 +344,7 @@ function build_packages()
 		-e "/@CLICKHOUSE_SPEC_FUNCS_SH@/ { 
 r $SRC_DIR/clickhouse.spec.funcs.sh
 d }" \
-		> "$RPMSPEC_DIR/clickhouse.spec"
+		> "$SPECS_DIR/clickhouse.spec"
  
 	# Compile sources and build RPMS
 	build_RPMs
