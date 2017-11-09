@@ -132,9 +132,13 @@ function install_dependencies()
 		# RHEL 6/7
 
 		# Connect EPEL repository
-		if ! sudo yum -y --nogpgcheck install https://dl.fedoraproject.org/pub/epel/epel-release-latest-$DISTR_MAJOR.noarch.rpm; then
-			echo "FAILED to install epel"
-			exit 1
+		if yum list installed epel-release >/dev/null 2>&1; then
+			echo "epel already installed"
+		else
+			if ! sudo yum -y --nogpgcheck install https://dl.fedoraproject.org/pub/epel/epel-release-latest-$DISTR_MAJOR.noarch.rpm; then
+				echo "FAILED to install epel"
+				exit 1
+			fi
 		fi
 
 		if ! sudo yum -y install cmake3; then
