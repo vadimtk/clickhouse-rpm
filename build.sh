@@ -278,6 +278,8 @@ function prepare_sources()
 
 function build_spec_file()
 {
+	mkdir -p "$SPECS_DIR"
+
 	# Create spec file from template
 	cat "$SRC_DIR/clickhouse.spec.in" | sed \
 		-e "s|@CH_VERSION@|$CH_VERSION|" \
@@ -338,7 +340,6 @@ function build_packages()
 
 	echo "Prepare dirs"
 	mkdir -p "$RPMBUILD_DIR"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
-	mkdir -p "$SPECS_DIR"
 
 	echo "Clean up after previous run"
 	rm -f "$RPMS_DIR"/clickhouse*
