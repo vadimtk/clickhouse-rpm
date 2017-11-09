@@ -88,16 +88,25 @@ function publish_packagecloud()
 
 	echo "Publishing as $PACKAGECLOUD_ID to '$PACKAGECLOUD_PATH' for distro $DISTRO_VERSION_ID"
 
-	for RPM_FILE in $(ls "$RPMBUILD_DIR"/RPMS/x86_64/clickhouse*.rpm); do
-		# Path to RPM file to publish
-		if [[ "$RPM_FILE" = /* ]]; then
-			# already absolute path
-			RPM_FILE_PATH="$RPM_FILE"
-		else
-			# relative path
-			RPM_FILE_PATH="$RPMBUILD_DIR/RPMS/x86_64/$RPM_FILE"
-		fi
-		publish_packagecloud_file $PACKAGECLOUD_ID $PACKAGECLOUD_PATH $DISTRO_VERSION_ID $RPM_FILE_PATH
-	done
+	if [ -n "$2" ]; then
+		# Have args specified. Treat it as a list of files to publish
+		for FILE in ${@:2}; do
+			echo $FILE
+			publish_packagecloud_file $PACKAGECLOUD_ID $PACKAGECLOUD_PATH $DISTRO_VERSION_ID $FILE
+		done
+	else
+		# Do not have any files specified. Publish RPMs from RPMS path
+		for RPM_FILE in $(ls "$RPMBUILD_DIR"/RPMS/x86_64/clickhouse*.rpm); do
+			# Path to RPM file to publish
+			if [[ "$RPM_FILE" = /* ]]; then
+				# already absolute path
+				RPM_FILE_PATH="$RPM_FILE"
+			else
+				# relative path
+				RPM_FILE_PATH="$RPMBUILD_DIR/RPMS/x86_64/$RPM_FILE"
+			fi
+			publish_packagecloud_file $PACKAGECLOUD_ID $PACKAGECLOUD_PATH $DISTRO_VERSION_ID $RPM_FILE_PATH
+		done
+	fi
 }
 
