@@ -257,7 +257,9 @@ function prepare_sources()
 		cd "$RPMBUILD_DIR/SOURCES"
 
 		# Clone specified branch with all submodules into $RPMBUILD_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG folder
-		git clone --branch "v$CH_VERSION-$CH_TAG" --single-branch --depth 1 --recursive "https://github.com/yandex/ClickHouse" "ClickHouse-$CH_VERSION-$CH_TAG"
+		git clone --branch "v$CH_VERSION-$CH_TAG" --depth 1 --recursive "https://github.com/yandex/ClickHouse" "ClickHouse-$CH_VERSION-$CH_TAG"
+		# older versions of git do not understand --single-branch option
+		#git clone --branch "v$CH_VERSION-$CH_TAG" --single-branch --depth 1 --recursive "https://github.com/yandex/ClickHouse" "ClickHouse-$CH_VERSION-$CH_TAG"
 
 		# Move files into .zip with minimal compression
 		zip -r0mq "ClickHouse-$CH_VERSION-$CH_TAG.zip" "ClickHouse-$CH_VERSION-$CH_TAG"
@@ -399,9 +401,8 @@ elif [ "$COMMAND" == "rpms" ]; then
 elif [ "$COMMAND" == "publish" ]; then
 	PUBLISH_TARGET="$2"
 	if [ "$PUBLISH_TARGET" == "packagecloud" ]; then
-		# Packagecloud user id. Ex.: 123ab45678c9012d3e4567890abcdef1234567890abcdef1
-		PACKAGECLOUD_ID=$3
-		publish_packagecloud $PACKAGECLOUD_ID
+		# run publish script with all the rest of CLI params
+		publish_packagecloud ${*:3}
 
 	elif [ "$PUBLISH_TARGET" == "ssh" ]; then
 		publish_ssh
