@@ -435,7 +435,7 @@ elif [ "$COMMAND" == "delete" ]; then
 		publish_packagecloud_delete ${*:3}
 
 	elif [ "$PUBLISH_TARGET" == "ssh" ]; then
-
+		echo "Not supported yet"
 	else
 		echo "Unknown publish target"
 		usage
