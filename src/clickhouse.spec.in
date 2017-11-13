@@ -30,6 +30,8 @@
 %define dist .el%{rhel}
 %endif
 
+@DEFINE_TOPDIR@
+@DEFINE_SMP_MFLAGS@
 
 Summary: Yandex ClickHouse DBMS
 Name: clickhouse

@@ -91,7 +91,6 @@ function publish_packagecloud()
 	if [ -n "$2" ]; then
 		# Have args specified. Treat it as a list of files to publish
 		for FILE in ${@:2}; do
-			echo $FILE
 			publish_packagecloud_file $PACKAGECLOUD_ID $PACKAGECLOUD_PATH $DISTRO_VERSION_ID $FILE
 		done
 	else
@@ -108,5 +107,33 @@ function publish_packagecloud()
 			publish_packagecloud_file $PACKAGECLOUD_ID $PACKAGECLOUD_PATH $DISTRO_VERSION_ID $RPM_FILE_PATH
 		done
 	fi
+}
+
+function publish_packagecloud_delete()
+{
+	# Packagecloud user id. Ex.: 123ab45678c9012d3e4567890abcdef1234567890abcdef1
+	PACKAGECLOUD_ID=$1
+
+	if [ -n "$2" ]; then
+		# Have args specified. Treat it as a list of files to publish
+		for FILE in ${@:2}; do
+
+			# from https://packagecloud.io/altinity/clickhouse/packages/PATH/TO/FILE make https://123456eae45643234234234234234234534aehaeh234ahdh:@packagecloud.io/api/v1/repos/altinity/clickhouse/PATH/TO/FILE
+			URL="${FILE/packagecloud.io/$PACKAGECLOUD_ID:@packagecloud.io/api/v1/repos}"
+			URL="${URL/packages\//}"
+			echo "Deleting"
+			echo "file: $FILE"
+			echo "URL : $URL"
+			echo -n "Delete result"
+			if curl --show-error --silent --output /dev/null -X DELETE "$URL"; then
+				echo "...OK"
+			else
+				echo "...FAILED"
+			fi
+		done
+	else
+		echo "Please specify URL to FILE to delete"
+	fi
+
 }
 

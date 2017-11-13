@@ -276,6 +276,23 @@ function prepare_sources()
 	fi
 }
 
+function build_spec_file()
+{
+	mkdir -p "$SPECS_DIR"
+
+	# Create spec file from template
+	cat "$SRC_DIR/clickhouse.spec.in" | sed \
+		-e "s|@CH_VERSION@|$CH_VERSION|" \
+		-e "s|@CH_TAG@|$CH_TAG|" \
+		-e "s|@DEFINE_TOPDIR@|%define _topdir $RPMBUILD_DIR|" \
+		-e "s|@DEFINE_SMP_MFLAGS@|%define _smp_mflags -j$THREADS|" \
+		-e "/@CLICKHOUSE_SPEC_FUNCS_SH@/ { 
+r $SRC_DIR/clickhouse.spec.funcs.sh
+d }" \
+		> "$SPECS_DIR/clickhouse.spec"
+}
+
+
 ##
 ## Build RPMs
 ##
@@ -292,10 +309,14 @@ function build_RPMs()
 		export CMAKE=cmake3
 		export CC=/opt/rh/devtoolset-6/root/usr/bin/gcc
 		export CXX=/opt/rh/devtoolset-6/root/usr/bin/g++
+		export OPENSSL_ROOT_DIR=/opt/openssl-1.1.0f
+	elif [ $DISTR_MAJOR == 25 ]; then
+		export OPENSSL_ROOT_DIR=/opt/openssl-1.1.0f
 	fi
 	echo "CMAKE=$CMAKE"
 	echo "CC=$CC"
 	echo "CXX=$CXX"
+	echo "OPENSSL_ROOT_DIR=$OPENSSL_ROOT_DIR"
 
 	echo "cd into $CWD_DIR"
 	cd "$CWD_DIR"
@@ -319,16 +340,11 @@ function build_packages()
 
 	echo "Prepare dirs"
 	mkdir -p "$RPMBUILD_DIR"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
-	mkdir -p "$SPECS_DIR"
 
 	echo "Clean up after previous run"
 	rm -f "$RPMS_DIR"/clickhouse*
 	rm -f "$SRPMS_DIR"/clickhouse*
 	rm -f "$SPECS_DIR"/clickhouse.spec
-
-	echo "Configure RPM build environment"
-	echo '%_topdir '"$RPMBUILD_DIR"'
-%_smp_mflags  -j'"$THREADS" > ~/.rpmmacros
 
 	echo "###########################"
 	echo "### Create RPM packages ###"
@@ -337,14 +353,8 @@ function build_packages()
 	# Prepare $RPMBUILD_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG.zip file
 	prepare_sources
 
-	# Create spec file from template
-	cat "$SRC_DIR/clickhouse.spec.in" | sed \
-		-e "s/@CH_VERSION@/$CH_VERSION/" \
-		-e "s/@CH_TAG@/$CH_TAG/" \
-		-e "/@CLICKHOUSE_SPEC_FUNCS_SH@/ { 
-r $SRC_DIR/clickhouse.spec.funcs.sh
-d }" \
-		> "$SPECS_DIR/clickhouse.spec"
+	# Build $SPECS_DIR/clickhouse.spec file
+	build_spec_file
  
 	# Compile sources and build RPMS
 	build_RPMs
@@ -362,9 +372,11 @@ function usage()
 	echo "Usage:"
 	echo "./build.sh all - install dependencies and build RPMs"
 	echo "./build.sh install - do not build RPMs, just install dependencies"
+	echo "./build.sh spec - do not install dependencies, just create SPEC file"
 	echo "./build.sh spec_rpms - do not install dependencies, just create SPEC file and build RPMs"
 	echo "./build.sh rpms - do not install dependencies, do not create SPEC file, just build RPMs"
 	echo "./build.sh publish packagecloud <packagecloud USER ID> - publish packages on packagecloud as USER"
+	echo "./build.sh delete packagecloud <packagecloud USER ID> - delete packages on packagecloud as USER"
 	echo "./build.sh publish ssh - publish packages via SSH"
 	
 	exit 0
@@ -393,6 +405,9 @@ if [ "$COMMAND" == "all" ]; then
 elif [ "$COMMAND" == "install" ]; then
 	install_dependencies
 
+elif [ "$COMMAND" == "spec" ]; then
+	build_spec_file
+
 elif [ "$COMMAND" == "spec_rpms" ]; then
 	build_packages
 
@@ -408,6 +423,19 @@ elif [ "$COMMAND" == "publish" ]; then
 	elif [ "$PUBLISH_TARGET" == "ssh" ]; then
 		publish_ssh
 
+	else
+		echo "Unknown publish target"
+		usage
+	fi
+
+elif [ "$COMMAND" == "delete" ]; then
+	PUBLISH_TARGET="$2"
+	if [ "$PUBLISH_TARGET" == "packagecloud" ]; then
+		# run publish script with all the rest of CLI params
+		publish_packagecloud_delete ${*:3}
+
+	elif [ "$PUBLISH_TARGET" == "ssh" ]; then
+		echo "Not supported yet"
 	else
 		echo "Unknown publish target"
 		usage
