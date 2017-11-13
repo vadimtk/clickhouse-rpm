@@ -91,7 +91,6 @@ function publish_packagecloud()
 	if [ -n "$2" ]; then
 		# Have args specified. Treat it as a list of files to publish
 		for FILE in ${@:2}; do
-			echo $FILE
 			publish_packagecloud_file $PACKAGECLOUD_ID $PACKAGECLOUD_PATH $DISTRO_VERSION_ID $FILE
 		done
 	else
