@@ -118,16 +118,16 @@ function publish_packagecloud_delete()
 	if [ -n "$2" ]; then
 		# Have args specified. Treat it as a list of files to publish
 		for FILE in ${@:2}; do
-			echo $FILE
 			echo -n "Deleting file: $FILE"
 
-			# from https://packagecloud.io/path/to/file make https://123456eae45643234234234234234234534aehaeh234ahdh:@packagecloud.io/path/to.file
-			URL="${FILE/packagecloud/$PACKAGECLOUD_ID:@packagecloud}"
-			if curl --show-error --silent --output /dev/null -X DELETE "$URL"; then
-				echo "...OK"
-			else
-				echo "...FAILED"
-			fi
+			# from https://packagecloud.io/path/to/file make https://123456eae45643234234234234234234534aehaeh234ahdh:@packagecloud.io/api/v1/repos/path/to.file
+			URL="${FILE|packagecloudi.io|$PACKAGECLOUD_ID:@packagecloud.io/api/v1/repos}"
+			echo $URL
+#			if curl --show-error --silent --output /dev/null -X DELETE "$URL"; then
+#				echo "...OK"
+#			else
+#				echo "...FAILED"
+#			fi
 		done
 	else
 		echo "Please specify URL to FILE to delete"
