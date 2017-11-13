@@ -110,3 +110,29 @@ function publish_packagecloud()
 	fi
 }
 
+function publish_packagecloud_delete()
+{
+	# Packagecloud user id. Ex.: 123ab45678c9012d3e4567890abcdef1234567890abcdef1
+	PACKAGECLOUD_ID=$1
+
+	if [ -n "$2" ]; then
+		# Have args specified. Treat it as a list of files to publish
+		for FILE in ${@:2}; do
+			echo $FILE
+			echo -n "Deleting file: $FILE"
+
+			# from https://packagecloud.io/path/to/file make https://123456eae45643234234234234234234534aehaeh234ahdh:@packagecloud.io/path/to.file
+			URL="${FILE/packagecloud/$PACKAGECLOUD_ID:@packagecloud}"
+			echo $URL
+#			if curl --show-error --silent --output /dev/null -X DELETE "$URL"; then
+#				echo "...OK"
+#			else
+#				echo "...FAILED"
+#			fi
+		done
+	else
+		echo "Please specify URL to FILE to delete"
+	fi
+
+}
+

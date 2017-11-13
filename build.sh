@@ -376,6 +376,7 @@ function usage()
 	echo "./build.sh spec_rpms - do not install dependencies, just create SPEC file and build RPMs"
 	echo "./build.sh rpms - do not install dependencies, do not create SPEC file, just build RPMs"
 	echo "./build.sh publish packagecloud <packagecloud USER ID> - publish packages on packagecloud as USER"
+	echo "./build.sh delete packagecloud <packagecloud USER ID> - delete packages on packagecloud as USER"
 	echo "./build.sh publish ssh - publish packages via SSH"
 	
 	exit 0
@@ -421,6 +422,19 @@ elif [ "$COMMAND" == "publish" ]; then
 
 	elif [ "$PUBLISH_TARGET" == "ssh" ]; then
 		publish_ssh
+
+	else
+		echo "Unknown publish target"
+		usage
+	fi
+
+elif [ "$COMMAND" == "delete" ]; then
+	PUBLISH_TARGET="$2"
+	if [ "$PUBLISH_TARGET" == "packagecloud" ]; then
+		# run publish script with all the rest of CLI params
+		publish_packagecloud_delete ${*:3}
+
+	elif [ "$PUBLISH_TARGET" == "ssh" ]; then
 
 	else
 		echo "Unknown publish target"
