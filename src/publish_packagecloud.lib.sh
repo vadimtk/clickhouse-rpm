@@ -118,7 +118,12 @@ function publish_packagecloud_delete()
 		# Have args specified. Treat it as a list of files to publish
 		for FILE in ${@:2}; do
 
-			# from https://packagecloud.io/altinity/clickhouse/packages/PATH/TO/FILE make https://123456eae45643234234234234234234534aehaeh234ahdh:@packagecloud.io/api/v1/repos/altinity/clickhouse/PATH/TO/FILE
+			# make https://123456eae45643234234234234234234534aehaeh234ahdh:@packagecloud.io/api/v1/repos/altinity/clickhouse/PATH/TO/FILE
+			# which is the URL used for deletetion,
+			# out of
+			# https://packagecloud.io/altinity/clickhouse/packages/PATH/TO/FILE 
+			# which is URL presented by packagecloud in their GUI
+			# (don't ask, why are those URIs different, just replace what is needed)
 			URL="${FILE/packagecloud.io/$PACKAGECLOUD_ID:@packagecloud.io/api/v1/repos}"
 			URL="${URL/packages\//}"
 			echo "Deleting"
