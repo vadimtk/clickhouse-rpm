@@ -370,14 +370,17 @@ function build_packages()
 function usage()
 {
 	echo "Usage:"
-	echo "./build.sh all - install dependencies and build RPMs"
-	echo "./build.sh install - do not build RPMs, just install dependencies"
-	echo "./build.sh spec - do not install dependencies, just create SPEC file"
-	echo "./build.sh spec_rpms - do not install dependencies, just create SPEC file and build RPMs"
-	echo "./build.sh rpms - do not install dependencies, do not create SPEC file, just build RPMs"
+	echo "./build.sh all       - install dependencies, download sources and build RPMs"
+	echo "./build.sh install   - just install dependencies (do not download sources, do not build RPMs)"
+	echo "./build.sh spec      - just create SPEC file (do not download sources, do not build RPMs)"
+	echo "./build.sh spec_rpms - download sources, create SPEC file and build RPMs (do not install dependencies)"
+	echo "./build.sh rpms      - just build RPMs (do not download sources, do not create SPEC file, do not install dependencies)"
+	echo ""
 	echo "./build.sh publish packagecloud <packagecloud USER ID> - publish packages on packagecloud as USER"
-	echo "./build.sh delete packagecloud <packagecloud USER ID> - delete packages on packagecloud as USER"
+	echo "./build.sh delete packagecloud <packagecloud USER ID>  - delete packages on packagecloud as USER"
+	echo ""
 	echo "./build.sh publish ssh - publish packages via SSH"
+	echo "---"
 	
 	exit 0
 }
