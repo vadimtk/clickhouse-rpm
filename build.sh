@@ -484,7 +484,8 @@ function build_packages()
 function usage()
 {
 	echo "Usage:"
-	echo "./build.sh all          - install dependencies, download sources and build RPMs"
+	echo "./build.sh idep_all     - install dependencies, download sources and build RPMs"
+	echo "./build.sh bdep_all     - build dependencies, download sources and build RPMs"
 	echo "./build.sh install_deps - just install dependencies (do not download sources, do not build RPMs)"
 	echo "./build.sh build_deps   - just build dependencies (do not download sources, do not build RPMs)"
 	echo "./build.sh spec         - just create SPEC file (do not download sources, do not build RPMs)"
@@ -516,8 +517,12 @@ fi
 
 COMMAND="$1"
 
-if [ "$COMMAND" == "all" ]; then
+if [ "$COMMAND" == "idep_all" ]; then
 	install_dependencies
+	build_packages
+
+elif [ "$COMMAND" == "bdep_all" ]; then
+	build_dependencies
 	build_packages
 
 elif [ "$COMMAND" == "install_deps" ]; then
