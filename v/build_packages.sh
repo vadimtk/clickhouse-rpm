@@ -114,9 +114,15 @@ wget http://downloads.sourceforge.net/project/boost/boost/1.65.1/boost_1_65_1.ta
 tar xf boost_1_65_1.tar.bz2
 cd boost_1_65_1
 ./bootstrap.sh
-./b2 --toolset=gcc-6 -j $THREADS
-PATH=$PATH ./b2 install --toolset=gcc-6 -j $THREADS
+./b2 --toolset=gcc-7 -j $THREADS
+PATH=$PATH ./b2 install --toolset=gcc-7 -j $THREADS
 cd ..
+
+# Clang requires Python27
+rpm -ivh http://dl.iuscommunity.org/pub/ius/stable/Redhat/6/x86_64/epel-release-6-5.noarch.rpm
+rpm -ivh http://dl.iuscommunity.org/pub/ius/stable/Redhat/6/x86_64/ius-release-1.0-14.ius.el6.noarch.rpm
+yum clean all
+yum install python27
 
 # Install Clang from Subversion repo
 mkdir llvm
