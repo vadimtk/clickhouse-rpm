@@ -189,9 +189,9 @@ function install_dependencies()
 		sudo yum install -y libstdc++-static
 	fi
 
-	echo "#################################################"
-	echo "### Install MySQL client library from MariaDB ###"
-	echo "#################################################"
+	echo "####################################"
+	echo "### Install MySQL client library ###"
+	echo "####################################"
 
 	# which repo should be used
 	# http://yum.mariadb.org/10.2/fedora26-amd64"
@@ -209,6 +209,120 @@ gpgcheck=1
 EOF"
 
 	sudo yum install -y MariaDB-devel MariaDB-shared
+}
+
+function build_dependencies()
+{
+	echo "##########################"
+	echo "### Build dependencies ###"
+	echo "##########################"
+	
+	if [[ $EUID -ne 0 ]]; then
+		echo "You must be a root user" 2>&1
+		exit 1
+	fi
+
+	if [ ! -d dependencies ]; then
+		mkdir dependencies
+	fi
+
+	rm -rf dependencies/*
+
+	cd dependencies
+
+	echo "####################################"
+	echo "### Install development packages ###"
+	echo "####################################"
+
+	yum -y install rpm-build redhat-rpm-config gcc-c++ readline-devel \
+		unixODBC-devel subversion python-devel git wget openssl-devel m4 createrepo \
+		libicu-devel zlib-devel libtool-ltdl-devel
+
+	echo "####################################"
+	echo "### Install MySQL client library ###"
+	echo "####################################"
+
+	if ! rpm --query mysql57-community-release; then
+		yum -y --nogpgcheck install http://dev.mysql.com/get/mysql57-community-release-el${DISTR_MAJOR}-9.noarch.rpm
+	fi
+
+	yum -y install mysql-community-devel
+	if [ ! -e /usr/lib64/libmysqlclient.a ]; then
+		ln -s /usr/lib64/mysql/libmysqlclient.a /usr/lib64/libmysqlclient.a
+	fi
+
+	echo "###################"
+	echo "### Build cmake ###"
+	echo "###################"
+
+	wget https://cmake.org/files/v3.9/cmake-3.9.3.tar.gz
+	tar xf cmake-3.9.3.tar.gz
+	cd cmake-3.9.3
+	./configure
+	make -j $THREADS
+	make install
+	cd ..
+
+	echo "###################"
+	echo "### Build GCC 7 ###"
+	echo "###################"
+
+	wget http://mirror.linux-ia64.org/gnu/gcc/releases/gcc-7.2.0/gcc-7.2.0.tar.gz
+	tar zxf gcc-7.2.0.tar.gz
+	cd gcc-7.2.0
+	./contrib/download_prerequisites
+	cd ..
+	mkdir gcc-build
+	cd gcc-build
+	../gcc-7.2.0/configure --enable-languages=c,c++ --enable-linker-build-id --with-default-libstdcxx-abi=gcc4-compatible --disable-multilib
+	make -j $THREADS
+	make install
+	hash gcc g++
+	gcc --version
+	ln -f -s /usr/local/bin/gcc /usr/local/bin/gcc-7
+	ln -f -s /usr/local/bin/g++ /usr/local/bin/g++-7
+	ln -f -s /usr/local/bin/gcc /usr/local/bin/cc
+	ln -f -s /usr/local/bin/g++ /usr/local/bin/c++
+	cd ..
+
+	# Use GCC 7 for builds
+	export CC=gcc-7
+	export CXX=g++-7
+
+	# Install Boost
+	wget http://downloads.sourceforge.net/project/boost/boost/1.65.1/boost_1_65_1.tar.bz2
+	tar xf boost_1_65_1.tar.bz2
+	cd boost_1_65_1
+	./bootstrap.sh
+	./b2 --toolset=gcc-7 -j $THREADS
+	PATH=$PATH ./b2 install --toolset=gcc-7 -j $THREADS
+	cd ..
+
+	# Clang requires Python27
+	rpm -ivh http://dl.iuscommunity.org/pub/ius/stable/Redhat/6/x86_64/epel-release-6-5.noarch.rpm
+	rpm -ivh http://dl.iuscommunity.org/pub/ius/stable/Redhat/6/x86_64/ius-release-1.0-14.ius.el6.noarch.rpm
+	yum clean all
+	yum install python27
+
+	echo "###################"
+	echo "### Build Clang ###"
+	echo "###################"
+
+	mkdir llvm
+	cd llvm
+	svn co http://llvm.org/svn/llvm-project/llvm/tags/RELEASE_500/final llvm
+	cd llvm/tools
+	svn co http://llvm.org/svn/llvm-project/cfe/tags/RELEASE_500/final clang
+	cd ../projects/
+	svn co http://llvm.org/svn/llvm-project/compiler-rt/tags/RELEASE_500/final compiler-rt
+	cd ../..
+	mkdir build
+	cd build/
+	cmake -D CMAKE_BUILD_TYPE:STRING=Release ../llvm -DCMAKE_CXX_LINK_FLAGS="-Wl,-rpath,/usr/local/lib64 -L/usr/local/lib64"
+	make -j $THREADS
+	make install
+	hash clang
+	cd ../../..
 }
 
 ##
@@ -370,11 +484,12 @@ function build_packages()
 function usage()
 {
 	echo "Usage:"
-	echo "./build.sh all       - install dependencies, download sources and build RPMs"
-	echo "./build.sh install   - just install dependencies (do not download sources, do not build RPMs)"
-	echo "./build.sh spec      - just create SPEC file (do not download sources, do not build RPMs)"
-	echo "./build.sh spec_rpms - download sources, create SPEC file and build RPMs (do not install dependencies)"
-	echo "./build.sh rpms      - just build RPMs (do not download sources, do not create SPEC file, do not install dependencies)"
+	echo "./build.sh all          - install dependencies, download sources and build RPMs"
+	echo "./build.sh install_deps - just install dependencies (do not download sources, do not build RPMs)"
+	echo "./build.sh build_deps   - just build dependencies (do not download sources, do not build RPMs)"
+	echo "./build.sh spec         - just create SPEC file (do not download sources, do not build RPMs)"
+	echo "./build.sh spec_rpms    - download sources, create SPEC file and build RPMs (do not install dependencies)"
+	echo "./build.sh rpms         - just build RPMs (do not download sources, do not create SPEC file, do not install dependencies)"
 	echo ""
 	echo "./build.sh publish packagecloud <packagecloud USER ID> - publish packages on packagecloud as USER"
 	echo "./build.sh delete packagecloud <packagecloud USER ID>  - delete packages on packagecloud as USER"
@@ -405,8 +520,11 @@ if [ "$COMMAND" == "all" ]; then
 	install_dependencies
 	build_packages
 
-elif [ "$COMMAND" == "install" ]; then
+elif [ "$COMMAND" == "install_deps" ]; then
 	install_dependencies
+
+elif [ "$COMMAND" == "build_deps" ]; then
+	build_dependencies
 
 elif [ "$COMMAND" == "spec" ]; then
 	build_spec_file
