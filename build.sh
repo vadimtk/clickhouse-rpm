@@ -268,7 +268,7 @@ function build_dependencies()
 	echo "###################"
 
 	wget http://mirror.linux-ia64.org/gnu/gcc/releases/gcc-7.2.0/gcc-7.2.0.tar.gz
-	tar zxf gcc-7.2.0.tar.gz
+	tar xf gcc-7.2.0.tar.gz
 	cd gcc-7.2.0
 	./contrib/download_prerequisites
 	cd ..
