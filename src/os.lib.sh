@@ -49,7 +49,29 @@ function os_rhel()
 ##
 function os_centos()
 {
-	[ "$OS" == "centos" ]
+	if [ -z ${1+x} ]; then
+		# "param 1 is unset
+		[ "$OS" == "centos" ]
+	else
+		# params 1 is set
+		[ "$OS" == "centos" ] && [ "$DISTR_MAJOR" == "$1" ]
+	fi
+}
+
+##
+##
+##
+function os_centos_6()
+{
+	[ os_centos ] && [ "$DISTR_MAJOR" == 6 ]
+}
+
+##
+##
+##
+function os_centos_7()
+{
+	[ os_centos ] && [ "$DISTR_MAJOR" == 7 ]
 }
 
 ##
