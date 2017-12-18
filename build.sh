@@ -496,7 +496,7 @@ function prepare_sources()
 		wget --progress=dot:giga "https://github.com/yandex/ClickHouse/archive/v$CH_VERSION-$CH_TAG.zip" --output-document="$RPMBUILD_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG.zip"
 
 	elif [ "$USE_SOURCES_FROM" == "git" ]; then
-		echo "Cloning from github v$CH_VERSION-$CH_TAG.zip into $RPMBUILD_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG"
+		echo "Cloning from github v$CH_VERSION-$CH_TAG into $RPMBUILD_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG"
 		echo "cd into $RPMBUILD_DIR/SOURCES"
 
 		cd "$RPMBUILD_DIR/SOURCES"
