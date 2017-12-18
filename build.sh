@@ -234,9 +234,15 @@ function build_dependencies()
 	echo "### Install development packages ###"
 	echo "####################################"
 
-	yum -y install rpm-build redhat-rpm-config gcc-c++ readline-devel \
-		unixODBC-devel subversion python-devel git wget openssl-devel m4 createrepo \
-		libicu-devel zlib-devel libtool-ltdl-devel
+	# Build process support requirements
+	yum -y install rpm-build redhat-rpm-config gcc-c++ \
+		subversion python-devel git wget m4 createrepo
+
+	# CH dependencies
+
+	# libicu-devel -  ICU (support for collations and charset conversion functions
+	# libtool-ltdl-devel - cooperate with dynamic libs
+	yum -y zlib-devel openssl-devel libicu-devel libtool-ltdl-devel unixODBC-devel readline-devel
 
 	echo "####################################"
 	echo "### Install MySQL client library ###"
