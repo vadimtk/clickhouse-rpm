@@ -150,15 +150,49 @@ function install_build_process_dependencies()
 
 	# libicu-devel -  ICU (support for collations and charset conversion functions
 	# libtool-ltdl-devel - cooperate with dynamic libs
-	sudo yum install -y zlib-devel openssl-devel openssl-static libicu-devel libtool-ltdl-devel unixODBC-devel readline-devel
+	sudo yum install -y zlib-devel openssl-devel libicu-devel libtool-ltdl-devel unixODBC-devel readline-devel
+}
 
-	scl enable devtoolset-7 bash
+##
+##
+##
+function install_workarounds()
+{
+	echo "############################"
+	echo "### Install workaroundis ###"
+	echo "############################"
+
+	if [ $DISTR_MAJOR == 7 ]; then
+		# CH wants to see openssl .h files in /usr/local/opt/openssl/include (hardcoded inside?)
+		# make it happy, so it puts it like the following in cmake3 output 
+		# -- Using openssl=1: /usr/local/opt/openssl/include : /usr/lib64/libssl.so;/usr/lib64/libcrypto.so
+		sudo mkdir -p /usr/local/opt/openssl
+		sudo ln -s /usr/local/opt/openssl/include /usr/include/openssl
+	fi
 }
 
 ##
 ## Install all required components before building RPMs
 ##
 function install_dependencies()
+{
+	echo "############################"
+	echo "### Install dependencies ###"
+	echo "############################"
+
+	install_general_dependencies
+	install_rpm_dependencies
+	install_mysql_libs
+	install_build_process_dependencies
+
+	install_workarounds
+}
+
+
+##
+## Install all required components before building RPMs
+##
+function install_dependencies_old()
 {
 	echo "############################"
 	echo "### Install dependencies ###"
@@ -288,8 +322,9 @@ EOF"
 	sudo yum install -y MariaDB-devel MariaDB-shared
 }
 
-
-
+##
+##
+##
 function build_dependencies()
 {
 	echo "##########################"
@@ -475,6 +510,9 @@ function prepare_sources()
 	fi
 }
 
+##
+##
+##
 function build_spec_file()
 {
 	mkdir -p "$SPECS_DIR"
@@ -506,16 +544,12 @@ function build_RPMs()
 	export CXX=g++
 	if [ $DISTR_MAJOR == 6 ] || [ $DISTR_MAJOR == 7 ]; then
 		export CMAKE=cmake3
-		export CC=/opt/rh/devtoolset-6/root/usr/bin/gcc
-		export CXX=/opt/rh/devtoolset-6/root/usr/bin/g++
-		export OPENSSL_ROOT_DIR=/opt/openssl-1.1.0f
-	elif [ $DISTR_MAJOR == 25 ]; then
-		export OPENSSL_ROOT_DIR=/opt/openssl-1.1.0f
+		export CC=/opt/rh/devtoolset-7/root/usr/bin/gcc
+		export CXX=/opt/rh/devtoolset-7/root/usr/bin/g++
 	fi
 	echo "CMAKE=$CMAKE"
 	echo "CC=$CC"
 	echo "CXX=$CXX"
-	echo "OPENSSL_ROOT_DIR=$OPENSSL_ROOT_DIR"
 
 	echo "cd into $CWD_DIR"
 	cd "$CWD_DIR"
@@ -569,10 +603,10 @@ function build_packages()
 function usage()
 {
 	echo "Usage:"
-	echo "./build.sh all          - most popular point of entry = the same as idep_all"
+	echo "./build.sh all          - most popular point of entry - the same as idep_all"
 	echo ""
-	echo "./build.sh idep_all     - install dependencies, download sources and build RPMs"
-	echo "./build.sh bdep_all     - build dependencies, download sources and build RPMs"
+	echo "./build.sh idep_all     - install dependencies from RPMs, download CH sources and build RPMs"
+	echo "./build.sh bdep_all     - build dependencies from sources, download CH sources and build RPMs !!! YOU MAY NEED TO UNDERSTAND INTERNALS !!!"
 	echo ""
 	echo "./build.sh install_deps - just install dependencies (do not download sources, do not build RPMs)"
 	echo "./build.sh build_deps   - just build dependencies (do not download sources, do not build RPMs)"
