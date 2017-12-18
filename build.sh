@@ -87,7 +87,7 @@ function install_general_dependencies()
 	echo "### Install general dependencies ###"
 	echo "####################################"
 
-	sudo yum install -y git wget curl m4 zip unzip
+	sudo yum install -y git wget curl zip unzip
 }
 
 ##
@@ -138,11 +138,15 @@ function install_build_process_dependencies()
 	echo "### Install build tools ###"
 	echo "###########################"
 
-	sudo yum install -y centos-release-scl
-	sudo yum install -y devtoolset-7
+	sudo yum install -y m4
 
-	sudo yum install -y epel-release
-	sudo yum install -y cmake3
+	if os_centos; then
+		sudo yum install -y centos-release-scl
+		sudo yum install -y devtoolset-7
+
+		sudo yum install -y epel-release
+		sudo yum install -y cmake3
+	fi
 
 	echo "###################################"
 	echo "### Install CH dev dependencies ###"
