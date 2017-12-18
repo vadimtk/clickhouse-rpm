@@ -30,9 +30,6 @@
 %define dist .el%{rhel}
 %endif
 
-@DEFINE_TOPDIR@
-@DEFINE_SMP_MFLAGS@
-
 Summary: Yandex ClickHouse DBMS
 Name: clickhouse
 Version: @CH_VERSION@
@@ -103,7 +100,7 @@ sed -i -- "s/VERSION_DESCRIBE .*)/VERSION_DESCRIBE v@CH_VERSION@-@CH_TAG@)/g" db
 rm -rf build
 mkdir build
 cd build
-$CMAKE .. -DCMAKE_BUILD_TYPE:STRING=Release
+$CMAKE .. -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX=/usr
 make %{?_smp_mflags}
 cd ..
 
@@ -129,15 +126,19 @@ mkdir -p %{buildroot}/usr/share/clickhouse/bin
 mkdir -p %{buildroot}/usr/share/clickhouse/headers
 
 # copy files from source into folders structure for distribution
-cp -r %{_builddir}/%{buildsubdir}/debian/clickhouse-server.init   %{buildroot}/etc/init.d/clickhouse-server
-cp -r %{_builddir}/%{buildsubdir}/debian/clickhouse-server.cron.d %{buildroot}/etc/cron.d/clickhouse-server
-cp -r %{_builddir}/%{buildsubdir}/debian/clickhouse.limits        %{buildroot}/etc/security/limits.d/clickhouse.conf
-cp -r %{_builddir}/%{buildsubdir}/dbms/src/Server/config.xml      %{buildroot}/etc/clickhouse-server/
-cp -r %{_builddir}/%{buildsubdir}/dbms/src/Server/users.xml       %{buildroot}/etc/clickhouse-server/
-#cp -r %{_builddir}/%{buildsubdir}/dbms/src/Client/config.xml %{buildroot}/etc/clickhouse-client/
-cp -r %{buildroot}/usr/local/bin/* %{buildroot}/usr/bin
-rm -rf %{buildroot}/usr/local
+cp %{_builddir}/%{buildsubdir}/debian/clickhouse-server.init   %{buildroot}/etc/init.d/clickhouse-server
+cp %{_builddir}/%{buildsubdir}/debian/clickhouse-server.cron.d %{buildroot}/etc/cron.d/clickhouse-server
+cp %{_builddir}/%{buildsubdir}/debian/clickhouse.limits        %{buildroot}/etc/security/limits.d/clickhouse.conf
+cp %{_builddir}/%{buildsubdir}/dbms/src/Server/config.xml      %{buildroot}/etc/clickhouse-server/
+cp %{_builddir}/%{buildsubdir}/dbms/src/Server/users.xml       %{buildroot}/etc/clickhouse-server/
 
+> %{_tmppath}/usr_bin_clickhouse_server_fileslist
+here=$(pwd)
+cd %{buildroot}/usr/bin
+for binfile in $(ls | grep -v client | grep -v compressor); do
+	echo "/usr/bin/$binfile" >> %{_tmppath}/usr_bin_clickhouse_server_fileslist
+done
+cd $here
 
 %clean
 rm -rf %{buildroot}
@@ -194,15 +195,14 @@ fi
 %config(noreplace) /etc/clickhouse-server/config.xml
 %config(noreplace) /etc/clickhouse-server/users.xml
 
-%files server
+%files server -f %{_tmppath}/usr_bin_clickhouse_server_fileslist
 %config(noreplace) /etc/security/limits.d/clickhouse.conf
 /etc/cron.d/clickhouse-server
 /etc/init.d/clickhouse-server
-/usr/bin/clickhouse
-/usr/bin/clickhouse-server
 /usr/share/clickhouse
 
 %files client
+%config(noreplace) /etc/clickhouse-client/config.xml
 /usr/bin/clickhouse-client
 
 %files compressor
