@@ -87,7 +87,7 @@ function install_general_dependencies()
 	echo "### Install general dependencies ###"
 	echo "####################################"
 
-	sudo yum install -y git wget curl zip unzip
+	sudo yum install -y git wget curl zip unzip sed
 }
 
 ##
@@ -138,7 +138,7 @@ function install_build_process_dependencies()
 	echo "### Install build tools ###"
 	echo "###########################"
 
-	sudo yum install -y m4
+	sudo yum install -y m4 make
 
 	if os_centos; then
 		sudo yum install -y centos-release-scl
@@ -146,6 +146,8 @@ function install_build_process_dependencies()
 
 		sudo yum install -y epel-release
 		sudo yum install -y cmake3
+	else
+		sudo yum install gcc-c++ cmake
 	fi
 
 	echo "###################################"
@@ -543,14 +545,16 @@ function build_RPMs()
 	echo "### Setup path to compilers ###"
 	echo "###############################"
 
-	export CMAKE=cmake
-	export CC=gcc
-	export CXX=g++
-	if [ $DISTR_MAJOR == 6 ] || [ $DISTR_MAJOR == 7 ]; then
+	if os_centos; then
 		export CMAKE=cmake3
 		export CC=/opt/rh/devtoolset-7/root/usr/bin/gcc
 		export CXX=/opt/rh/devtoolset-7/root/usr/bin/g++
+	else
+		export CMAKE=cmake
+		export CC=gcc
+		export CXX=g++
 	fi
+
 	echo "CMAKE=$CMAKE"
 	echo "CC=$CC"
 	echo "CXX=$CXX"
