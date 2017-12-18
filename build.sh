@@ -547,8 +547,8 @@ function build_RPMs()
 	echo "### Setup RPM Macros ###"
 	echo "########################"
 
-	echo '%_topdir %(echo $RPMBUILD_DIR)
-%_tmppath %(echo $TMP_DIR)
+	echo '%_topdir '"$RPMBUILD_DIR"'
+%_tmppath '"$TMP_DIR"'
 %_smp_mflags  -j'"$THREADS" > ~/.rpmmacros
 
 	echo "###############################"
