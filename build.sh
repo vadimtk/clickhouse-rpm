@@ -79,6 +79,83 @@ export PATH=${PATH/"/usr/local/bin:"/}:/usr/local/bin
 . ./src/publish_ssh.lib.sh
 
 ##
+##
+##
+function install_general_dependencies()
+{
+	echo "####################################"
+	echo "### Install general dependencies ###"
+	echo "####################################"
+
+	sudo yum install -y git wget curl m4 zip unzip
+}
+
+##
+##
+##
+function install_rpm_dependencies()
+{
+	echo "##############################"
+        echo "### RPM build dependencies ###"
+	echo "##############################"
+
+	sudo yum install -y rpm-build redhat-rpm-config createrepo
+}
+
+##
+##
+##
+function install_mysql_libs()
+{
+	echo "####################################"
+	echo "### Install MySQL client library ###"
+	echo "####################################"
+
+	# which repo should be used
+	# http://yum.mariadb.org/10.2/fedora26-amd64
+	# http://yum.mariadb.org/10.2/centos6-amd64
+	# http://yum.mariadb.org/10.2/centos7-amd64
+	MARIADB_REPO_URL="http://yum.mariadb.org/10.2/${OS}${DISTR_MAJOR}-amd64"
+
+	# create repo file
+	sudo bash -c "cat << EOF > /etc/yum.repos.d/mariadb.repo
+[mariadb]
+name=MariaDB
+baseurl=${MARIADB_REPO_URL}
+gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
+gpgcheck=1
+EOF"
+
+	sudo yum install -y MariaDB-devel MariaDB-shared
+}
+
+##
+##
+##
+function install_build_process_dependencies()
+{
+	echo "###########################"
+	echo "### Install build tools ###"
+	echo "###########################"
+
+	sudo yum install -y centos-release-scl
+	sudo yum install -y devtoolset-7
+
+	sudo yum install -y epel-release
+	sudo yum install -y cmake3
+
+	echo "###################################"
+	echo "### Install CH dev dependencies ###"
+	echo "###################################"
+
+	# libicu-devel -  ICU (support for collations and charset conversion functions
+	# libtool-ltdl-devel - cooperate with dynamic libs
+	sudo yum install -y zlib-devel openssl-devel openssl-static libicu-devel libtool-ltdl-devel unixODBC-devel readline-devel
+
+	scl enable devtoolset-7 bash
+}
+
+##
 ## Install all required components before building RPMs
 ##
 function install_dependencies()
@@ -210,6 +287,8 @@ EOF"
 
 	sudo yum install -y MariaDB-devel MariaDB-shared
 }
+
+
 
 function build_dependencies()
 {
@@ -490,8 +569,11 @@ function build_packages()
 function usage()
 {
 	echo "Usage:"
+	echo "./build.sh all          - most popular point of entry = the same as idep_all"
+	echo ""
 	echo "./build.sh idep_all     - install dependencies, download sources and build RPMs"
 	echo "./build.sh bdep_all     - build dependencies, download sources and build RPMs"
+	echo ""
 	echo "./build.sh install_deps - just install dependencies (do not download sources, do not build RPMs)"
 	echo "./build.sh build_deps   - just build dependencies (do not download sources, do not build RPMs)"
 	echo "./build.sh spec         - just create SPEC file (do not download sources, do not build RPMs)"
@@ -502,7 +584,6 @@ function usage()
 	echo "./build.sh delete packagecloud <packagecloud USER ID>  - delete packages on packagecloud as USER"
 	echo ""
 	echo "./build.sh publish ssh - publish packages via SSH"
-	echo "---"
 	
 	exit 0
 }
@@ -523,7 +604,11 @@ fi
 
 COMMAND="$1"
 
-if [ "$COMMAND" == "idep_all" ]; then
+if [ "$COMMAND" == "all" ]; then
+	install_dependencies
+	build_packages
+
+elif [ "$COMMAND" == "idep_all" ]; then
 	install_dependencies
 	build_packages
 
