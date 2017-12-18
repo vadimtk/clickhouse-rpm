@@ -30,9 +30,6 @@
 %define dist .el%{rhel}
 %endif
 
-@DEFINE_TOPDIR@
-@DEFINE_SMP_MFLAGS@
-
 Summary: Yandex ClickHouse DBMS
 Name: clickhouse
 Version: @CH_VERSION@
@@ -103,7 +100,7 @@ sed -i -- "s/VERSION_DESCRIBE .*)/VERSION_DESCRIBE v@CH_VERSION@-@CH_TAG@)/g" db
 rm -rf build
 mkdir build
 cd build
-$CMAKE .. -DCMAKE_BUILD_TYPE:STRING=Release
+$CMAKE .. -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX=/usr
 make %{?_smp_mflags}
 cd ..
 

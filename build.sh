@@ -67,6 +67,9 @@ SRPMS_DIR="$RPMBUILD_DIR/SRPMS"
 # Where RPM spec file would be kept
 SPECS_DIR="$RPMBUILD_DIR/SPECS"
 
+# Where temp files would be kept
+TMP_DIR="$RPMBUILD_DIR/TMP"
+
 # Detect number of threads to run 'make' command
 export THREADS=$(grep -c ^processor /proc/cpuinfo)
 
@@ -528,8 +531,6 @@ function build_spec_file()
 	cat "$SRC_DIR/clickhouse.spec.in" | sed \
 		-e "s|@CH_VERSION@|$CH_VERSION|" \
 		-e "s|@CH_TAG@|$CH_TAG|" \
-		-e "s|@DEFINE_TOPDIR@|%define _topdir $RPMBUILD_DIR|" \
-		-e "s|@DEFINE_SMP_MFLAGS@|%define _smp_mflags -j$THREADS|" \
 		-e "/@CLICKHOUSE_SPEC_FUNCS_SH@/ { 
 r $SRC_DIR/clickhouse.spec.funcs.sh
 d }" \
@@ -542,6 +543,14 @@ d }" \
 ##
 function build_RPMs()
 {
+	echo "########################"
+	echo "### Setup RPM Macros ###"
+	echo "########################"
+
+	echo '%_topdir %(echo $RPMBUILD_DIR)
+%_tmppath %(echo $TMP_DIR)
+%_smp_mflags  -j'"$THREADS" > ~/.rpmmacros
+
 	echo "###############################"
 	echo "### Setup path to compilers ###"
 	echo "###############################"
@@ -563,7 +572,10 @@ function build_RPMs()
 	echo "cd into $CWD_DIR"
 	cd "$CWD_DIR"
 
-	# Build RPMs
+	echo "##################"
+	echo "### Build RPMs ###"
+	echo "##################"
+
 	echo "rpmbuild $CH_VERSION-$CH_TAG"
 	rpmbuild -bs "$SPECS_DIR/clickhouse.spec"
 	rpmbuild -bb "$SPECS_DIR/clickhouse.spec"
