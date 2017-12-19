@@ -150,7 +150,8 @@ function install_build_process_dependencies()
 		sudo yum install -y epel-release
 		sudo yum install -y cmake3
 	else
-		sudo yum install -y gcc-c++ cmake
+		# fedora
+		sudo yum install -y gcc-c++ libstdc++-static cmake
 	fi
 
 	echo "###################################"
