@@ -533,7 +533,7 @@ function build_spec_file()
 	cat "$SRC_DIR/clickhouse.spec.in" | sed \
 		-e "s|@CH_VERSION@|$CH_VERSION|" \
 		-e "s|@CH_TAG@|$CH_TAG|" \
-		-e "s|@CMAKE_OPTIONS@|$CMAKE_OPTIONS" \
+		-e "s|@CMAKE_OPTIONS@|$CMAKE_OPTIONS|" \
 		-e "/@CLICKHOUSE_SPEC_FUNCS_SH@/ { 
 r $SRC_DIR/clickhouse.spec.funcs.sh
 d }" \
