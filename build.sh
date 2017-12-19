@@ -171,7 +171,7 @@ function install_workarounds()
 	echo "### Install workarounds ###"
 	echo "###########################"
 
-	if [ $DISTR_MAJOR == 7 ]; then
+	if [ $DISTR_MAJOR == 7 ] || [ $DISTR_MAJOR == 26 ]; then
 		# CH wants to see openssl .h files in /usr/local/opt/openssl/include (hardcoded inside?)
 		# make it happy, so it puts it like the following in cmake3 output 
 		# -- Using openssl=1: /usr/local/opt/openssl/include : /usr/lib64/libssl.so;/usr/lib64/libcrypto.so
