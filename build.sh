@@ -81,6 +81,8 @@ export PATH=${PATH/"/usr/local/bin:"/}:/usr/local/bin
 . ./src/publish_packagecloud.lib.sh
 . ./src/publish_ssh.lib.sh
 
+CMAKE_OPTIONS=""
+
 ##
 ##
 ##
@@ -172,14 +174,7 @@ function install_workarounds()
 	echo "### Install workarounds ###"
 	echo "###########################"
 
-	if [ $DISTR_MAJOR == 7 ] || [ $DISTR_MAJOR == 26 ]; then
-		# CH wants to see openssl .h files in /usr/local/opt/openssl/include (hardcoded inside?)
-		# make it happy, so it puts it like the following in cmake3 output 
-		# -- Using openssl=1: /usr/local/opt/openssl/include : /usr/lib64/libssl.so;/usr/lib64/libcrypto.so
-		# create /usr/local/opt/openssl foler and put inside it a link to /usr/include/openssl called /usr/local/opt/openssl/include
-		sudo mkdir -p /usr/local/opt/openssl
-		sudo ln -s /usr/include/openssl /usr/local/opt/openssl/include
-	fi
+	# Now all workarounds are included into CMAKE_OPTIONS
 }
 
 ##
@@ -526,16 +521,25 @@ function prepare_sources()
 ##
 function build_spec_file()
 {
+	echo "########################"
+	echo "### Build .spec file ###"
+	echo "########################"
+
 	mkdir -p "$SPECS_DIR"
+
+	CMAKE_OPTIONS="${CMAKE_OPTIONS} -DHAVE_THREE_PARAM_SCHED_SETAFFINITY=1 -DOPENSSL_SSL_LIBRARY=/usr/lib64/libssl.so -DOPENSSL_CRYPTO_LIBRARY=/usr/lib64/libcrypto.so -DOPENSSL_INCLUDE_DIR=/usr/include/openssl"
 
 	# Create spec file from template
 	cat "$SRC_DIR/clickhouse.spec.in" | sed \
 		-e "s|@CH_VERSION@|$CH_VERSION|" \
 		-e "s|@CH_TAG@|$CH_TAG|" \
+		-e "s|@CMAKE_OPTIONS@|$CMAKE_OPTIONS" \
 		-e "/@CLICKHOUSE_SPEC_FUNCS_SH@/ { 
 r $SRC_DIR/clickhouse.spec.funcs.sh
 d }" \
 		> "$SPECS_DIR/clickhouse.spec"
+
+	ls -l "$SPECS_DIR/clickhouse.spec"
 }
 
 
@@ -581,6 +585,10 @@ function build_RPMs()
 	rpmbuild -bs "$SPECS_DIR/clickhouse.spec"
 	rpmbuild -bb "$SPECS_DIR/clickhouse.spec"
 	echo "rpmbuild completed $CH_VERSION-$CH_TAG"
+
+	# Display results
+	list_RPMs
+	list_SRPMs
 }
 
 ##
@@ -613,10 +621,6 @@ function build_packages()
  
 	# Compile sources and build RPMS
 	build_RPMs
-
-	# Display results
-	list_RPMs
-	list_SRPMs
 }
 
 ##

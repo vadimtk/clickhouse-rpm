@@ -100,7 +100,7 @@ sed -i -- "s/VERSION_DESCRIBE .*)/VERSION_DESCRIBE v@CH_VERSION@-@CH_TAG@)/g" db
 rm -rf build
 mkdir build
 cd build
-$CMAKE .. -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX=/usr
+$CMAKE .. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE:STRING=Release @CMAKE_OPTIONS@
 make %{?_smp_mflags}
 cd ..
 
