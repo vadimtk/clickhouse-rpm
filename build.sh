@@ -523,14 +523,19 @@ function prepare_sources()
 		# Go older way because older versions of git (CentOS 6.9, for example) do not understand new syntax of branches etc
 		# Clone specified branch with all submodules into $SOURCES_DIR/ClickHouse-$CH_VERSION-$CH_TAG folder
 		echo "Clone ClickHouse repo"
-		echo "git clone --recursive https://github.com/yandex/ClickHouse ClickHouse-${CH_VERSION-$CH_TAG}"
-		git clone --recursive "https://github.com/yandex/ClickHouse" "ClickHouse-${CH_VERSION-$CH_TAG}"
+		echo "git clone https://github.com/yandex/ClickHouse ClickHouse-${CH_VERSION-$CH_TAG}"
+		git clone "https://github.com/yandex/ClickHouse" "ClickHouse-${CH_VERSION-$CH_TAG}"
 
+		echo "cd ClickHouse-$CH_VERSION-$CH_TAG"
 		cd "ClickHouse-$CH_VERSION-$CH_TAG"
 
 		echo "Checkout specific tag v${CH_VERSION-$CH_TAG}"
 		echo "git checkout v${CH_VERSION-$CH_TAG}"
 		git checkout "v${CH_VERSION-$CH_TAG}"
+
+		echo "Update submodules"
+		echo "git submodule update --init --recursive"
+		git submodule update --init --recursive
 
 		cd "$SOURCES_DIR"
 
