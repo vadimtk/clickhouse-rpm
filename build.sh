@@ -58,14 +58,17 @@ SRC_DIR="$CWD_DIR/src"
 # Where RPMs would be built
 RPMBUILD_DIR="$CWD_DIR/rpmbuild"
 
+# Where build process will be run
+BUILD_DIR="$RPMBUILD_DIR/BUILD"
+
 # Where build RPM files would be kept
 RPMS_DIR="$RPMBUILD_DIR/RPMS/x86_64"
 
-# Where RPM spec file would be kept
-SPECS_DIR="$RPMBUILD_DIR/SPECS"
-
 # Where source files would be kept
 SOURCES_DIR="$RPMBUILD_DIR/SOURCES"
+
+# Where RPM spec file would be kept
+SPECS_DIR="$RPMBUILD_DIR/SPECS"
 
 # Where built SRPM files would be kept
 SRPMS_DIR="$RPMBUILD_DIR/SRPMS"
@@ -505,7 +508,7 @@ function prepare_sources()
 	mkdirs
 
 	echo "Clean sources dir"
-	rm -rf "$SOURCES_DIR"/*
+	rm -rf "$SOURCES_DIR"/ClickHouse*
 
 	if [ "$USE_SOURCES_FROM" == "releasefile" ]; then
 		echo "Downloading ClickHouse source archive v$CH_VERSION-$CH_TAG.zip"
@@ -578,8 +581,11 @@ d }" \
 ##
 function build_RPMs()
 {
-	echo "ensure build dirs are in place"
+	echo "Ensure build dirs are in place"
 	mkdirs
+
+	echo "Clean BUILD dir"
+	rm -rf "$BUILD_DIR"/ClickHouse*
 
 	echo "########################"
 	echo "### Setup RPM Macros ###"
