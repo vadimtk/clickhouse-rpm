@@ -61,11 +61,14 @@ RPMBUILD_DIR="$CWD_DIR/rpmbuild"
 # Where build RPM files would be kept
 RPMS_DIR="$RPMBUILD_DIR/RPMS/x86_64"
 
-# Where built SRPM files would be kept
-SRPMS_DIR="$RPMBUILD_DIR/SRPMS"
-
 # Where RPM spec file would be kept
 SPECS_DIR="$RPMBUILD_DIR/SPECS"
+
+# Where source files would be kept
+SOURCES_DIR="$RPMBUILD_DIR/SOURSES"
+
+# Where built SRPM files would be kept
+SRPMS_DIR="$RPMBUILD_DIR/SRPMS"
 
 # Where temp files would be kept
 TMP_DIR="$RPMBUILD_DIR/TMP"
@@ -481,23 +484,40 @@ function list_SRPMs()
 	echo "######################################################"
 }
 
+##
+##
+##
+function mkdirs()
+{
+	echo "####################"
+	echo "### Prepare dirs ###"
+	echo "####################"
+
+	mkdir -p "$RPMBUILD_DIR"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+}
 
 ##
 ## Prepare $RPMBUILD_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG.zip file
 ##
 function prepare_sources()
 {
+	echo "Ensure SOURCES dir is in place"
+	mkdirs
+
+	echo "Clean sources dir"
+	rm -rf "$SOURCES_DIR"/*
+
 	if [ "$USE_SOURCES_FROM" == "releasefile" ]; then
 		echo "Downloading ClickHouse source archive v$CH_VERSION-$CH_TAG.zip"
-		wget --progress=dot:giga "https://github.com/yandex/ClickHouse/archive/v$CH_VERSION-$CH_TAG.zip" --output-document="$RPMBUILD_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG.zip"
+		wget --progress=dot:giga "https://github.com/yandex/ClickHouse/archive/v$CH_VERSION-$CH_TAG.zip" --output-document="$SOURCES_DIR/ClickHouse-$CH_VERSION-$CH_TAG.zip"
 
 	elif [ "$USE_SOURCES_FROM" == "git" ]; then
-		echo "Cloning from github v$CH_VERSION-$CH_TAG into $RPMBUILD_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG"
-		echo "cd into $RPMBUILD_DIR/SOURCES"
+		echo "Cloning from github v$CH_VERSION-$CH_TAG into $SOURCES_DIR/ClickHouse-$CH_VERSION-$CH_TAG"
+		echo "cd into $SOURCES_DIR"
 
-		cd "$RPMBUILD_DIR/SOURCES"
+		cd "$SOURCES_DIR"
 
-		# Clone specified branch with all submodules into $RPMBUILD_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG folder
+		# Clone specified branch with all submodules into $SOURCES_DIR/ClickHouse-$CH_VERSION-$CH_TAG folder
 		git clone --branch "v$CH_VERSION-$CH_TAG" --depth 1 --recursive "https://github.com/yandex/ClickHouse" "ClickHouse-$CH_VERSION-$CH_TAG"
 		# older versions of git do not understand --single-branch option
 		#git clone --branch "v$CH_VERSION-$CH_TAG" --single-branch --depth 1 --recursive "https://github.com/yandex/ClickHouse" "ClickHouse-$CH_VERSION-$CH_TAG"
@@ -521,11 +541,12 @@ function prepare_sources()
 ##
 function build_spec_file()
 {
+	echo "ensure SPECS dir is in place"
+	mkdirs
+
 	echo "########################"
 	echo "### Build .spec file ###"
 	echo "########################"
-
-	mkdir -p "$SPECS_DIR"
 
 	CMAKE_OPTIONS="${CMAKE_OPTIONS} -DHAVE_THREE_PARAM_SCHED_SETAFFINITY=1 -DOPENSSL_SSL_LIBRARY=/usr/lib64/libssl.so -DOPENSSL_CRYPTO_LIBRARY=/usr/lib64/libcrypto.so -DOPENSSL_INCLUDE_DIR=/usr/include/openssl"
 
@@ -548,6 +569,9 @@ d }" \
 ##
 function build_RPMs()
 {
+	echo "ensure build dirs are in place"
+	mkdirs
+
 	echo "########################"
 	echo "### Setup RPM Macros ###"
 	echo "########################"
@@ -600,9 +624,8 @@ function build_RPMs()
 ##
 function build_packages()
 {
-
-	echo "Prepare dirs"
-	mkdir -p "$RPMBUILD_DIR"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+	echo "ensure build dirs are in place"
+	mkdirs
 
 	echo "Clean up after previous run"
 	rm -f "$RPMS_DIR"/clickhouse*
@@ -613,7 +636,7 @@ function build_packages()
 	echo "### Create RPM packages ###"
 	echo "###########################"
 	
-	# Prepare $RPMBUILD_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG.zip file
+	# Prepare $SOURCES_DIR/ClickHouse-$CH_VERSION-$CH_TAG.zip file
 	prepare_sources
 
 	# Build $SPECS_DIR/clickhouse.spec file
@@ -636,14 +659,15 @@ function usage()
 	echo ""
 	echo "./build.sh install_deps - just install dependencies (do not download sources, do not build RPMs)"
 	echo "./build.sh build_deps   - just build dependencies (do not download sources, do not build RPMs)"
+	echo "./build.sh src          - just download sources"
 	echo "./build.sh spec         - just create SPEC file (do not download sources, do not build RPMs)"
-	echo "./build.sh spec_rpms    - download sources, create SPEC file and build RPMs (do not install dependencies)"
+	echo "./build.sh packages     - download sources, create SPEC file and build RPMs (do not install dependencies)"
 	echo "./build.sh rpms         - just build RPMs (do not download sources, do not create SPEC file, do not install dependencies)"
 	echo ""
 	echo "./build.sh publish packagecloud <packagecloud USER ID> - publish packages on packagecloud as USER"
 	echo "./build.sh delete packagecloud <packagecloud USER ID>  - delete packages on packagecloud as USER"
 	echo ""
-	echo "./build.sh publish ssh - publish packages via SSH"
+	echo "./build.sh publish ssh  - publish packages via SSH"
 	
 	exit 0
 }
@@ -682,10 +706,13 @@ elif [ "$COMMAND" == "install_deps" ]; then
 elif [ "$COMMAND" == "build_deps" ]; then
 	build_dependencies
 
+elif [ "$COMMAND" == "src" ]; then
+	prepare_sources
+
 elif [ "$COMMAND" == "spec" ]; then
 	build_spec_file
 
-elif [ "$COMMAND" == "spec_rpms" ]; then
+elif [ "$COMMAND" == "packages" ]; then
 	build_packages
 
 elif [ "$COMMAND" == "rpms" ]; then
