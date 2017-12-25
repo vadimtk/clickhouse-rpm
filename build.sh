@@ -511,11 +511,11 @@ function prepare_sources()
 	rm -rf "$SOURCES_DIR"/ClickHouse*
 
 	if [ "$USE_SOURCES_FROM" == "releasefile" ]; then
-		echo "Downloading ClickHouse source archive v$CH_VERSION-$CH_TAG.zip"
-		wget --progress=dot:giga "https://github.com/yandex/ClickHouse/archive/v$CH_VERSION-$CH_TAG.zip" --output-document="$SOURCES_DIR/ClickHouse-$CH_VERSION-$CH_TAG.zip"
+		echo "Downloading ClickHouse source archive v${CH_VERSION}-${CH_TAG}.zip"
+		wget --progress=dot:giga "https://github.com/yandex/ClickHouse/archive/v${CH_VERSION}-${CH_TAG}.zip" --output-document="$SOURCES_DIR/ClickHouse-${CH_VERSION}-${CH_TAG}.zip"
 
 	elif [ "$USE_SOURCES_FROM" == "git" ]; then
-		echo "Cloning from github v$CH_VERSION-$CH_TAG into $SOURCES_DIR/ClickHouse-$CH_VERSION-$CH_TAG"
+		echo "Cloning from github v${CH_VERSION}-${CH_TAG} into $SOURCES_DIR/ClickHouse-${CH_VERSION}-${CH_TAG}"
 		echo "cd into $SOURCES_DIR"
 
 		cd "$SOURCES_DIR"
@@ -523,15 +523,15 @@ function prepare_sources()
 		# Go older way because older versions of git (CentOS 6.9, for example) do not understand new syntax of branches etc
 		# Clone specified branch with all submodules into $SOURCES_DIR/ClickHouse-$CH_VERSION-$CH_TAG folder
 		echo "Clone ClickHouse repo"
-		echo "git clone https://github.com/yandex/ClickHouse ClickHouse-${CH_VERSION-$CH_TAG}"
-		git clone "https://github.com/yandex/ClickHouse" "ClickHouse-${CH_VERSION-$CH_TAG}"
+		echo "git clone https://github.com/yandex/ClickHouse ClickHouse-${CH_VERSION}-${CH_TAG}"
+		git clone "https://github.com/yandex/ClickHouse" "ClickHouse-${CH_VERSION}-${CH_TAG}"
 
-		echo "cd ClickHouse-$CH_VERSION-$CH_TAG"
-		cd "ClickHouse-$CH_VERSION-$CH_TAG"
+		echo "cd ClickHouse-${CH_VERSION}-${CH_TAG}"
+		cd "ClickHouse-${CH_VERSION}-${CH_TAG}"
 
-		echo "Checkout specific tag v${CH_VERSION-$CH_TAG}"
-		echo "git checkout v${CH_VERSION-$CH_TAG}"
-		git checkout "v${CH_VERSION-$CH_TAG}"
+		echo "Checkout specific tag v${CH_VERSION}-${CH_TAG}"
+		echo "git checkout v${CH_VERSION}-${CH_TAG}"
+		git checkout "v${CH_VERSION}-${CH_TAG}"
 
 		echo "Update submodules"
 		echo "git submodule update --init --recursive"
@@ -540,10 +540,10 @@ function prepare_sources()
 		cd "$SOURCES_DIR"
 
 		# Move files into .zip with minimal compression
-		zip -r0mq "ClickHouse-$CH_VERSION-$CH_TAG.zip" "ClickHouse-$CH_VERSION-$CH_TAG"
+		zip -r0mq "ClickHouse-${CH_VERSION}-${CH_TAG}.zip" "ClickHouse-${CH_VERSION}-${CH_TAG}"
 
 		echo "Ensure .zip file is available"
-		ls -l "ClickHouse-$CH_VERSION-$CH_TAG.zip"
+		ls -l "ClickHouse-${CH_VERSION}-${CH_TAG}.zip"
 
 		cd "$CWD_DIR"
 
@@ -625,10 +625,10 @@ function build_RPMs()
 	echo "### Build RPMs ###"
 	echo "##################"
 
-	echo "rpmbuild $CH_VERSION-$CH_TAG"
+	echo "rpmbuild ${CH_VERSION}-${CH_TAG}"
 	rpmbuild -bs "$SPECS_DIR/clickhouse.spec"
 	rpmbuild -bb "$SPECS_DIR/clickhouse.spec"
-	echo "rpmbuild completed $CH_VERSION-$CH_TAG"
+	echo "rpmbuild completed ${CH_VERSION}-${CH_TAG}"
 
 	# Display results
 	list_RPMs
