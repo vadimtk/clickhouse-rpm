@@ -148,6 +148,7 @@ rm -rf %{buildroot}
 /usr/bin/clickhouse-local
 /usr/bin/clickhouse-benchmark
 /usr/bin/clickhouse-extract-from-config
+/usr/bin/clickhouse-format
 
 %post client
 mkdir -p /etc/clickhouse-client/conf.d
