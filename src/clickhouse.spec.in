@@ -161,7 +161,7 @@ chown -R clickhouse: /etc/clickhouse-client
 /usr/bin/clickhouse-server
 /usr/bin/clickhouse-clang
 /usr/bin/clickhouse-lld
-/usr/share/clickhouse/*
+/usr/share/clickhouse
 
 %post server
 if [ $1 = 1 ]; then
@@ -227,7 +227,7 @@ chown -R ${CLICKHOUSE_USER}:${CLICKHOUSE_GROUP} /etc/compressor
 %files test
 usr/bin/clickhouse-test
 usr/bin/clickhouse-performance-test
-usr/share/clickhouse-test/*
+usr/share/clickhouse-test
 
 %changelog
 * Wed May 17 2017 Vadim Tkachenko
