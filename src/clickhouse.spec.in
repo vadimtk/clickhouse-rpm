@@ -72,6 +72,7 @@ This package contains compressor utility for ClickHouse DBMS.
 
 %package test
 Summary: %{name} test suite
+Requires: %{name}-server = %{version}-%{release}
 
 %description test
 This package contains test suite for ClickHouse DBMS
