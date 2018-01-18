@@ -157,7 +157,8 @@ chown -R clickhouse: /etc/clickhouse-client
 %config(noreplace) /etc/security/limits.d/clickhouse.conf
 /etc/cron.d/clickhouse-server
 /etc/init.d/clickhouse-server
-/etc/systemd/system/clickhouse-server.service
+# TODO
+#/etc/systemd/system/clickhouse-server.service
 /usr/bin/clickhouse
 /usr/bin/clickhouse-server
 /usr/bin/clickhouse-clang
