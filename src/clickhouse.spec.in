@@ -163,6 +163,7 @@ chown -R clickhouse: /etc/clickhouse-client
 /usr/bin/clickhouse-server
 /usr/bin/clickhouse-clang
 /usr/bin/clickhouse-lld
+# folder
 /usr/share/clickhouse
 
 %post server
@@ -227,9 +228,10 @@ mkdir -p /etc/compressor/conf.d
 chown -R ${CLICKHOUSE_USER}:${CLICKHOUSE_GROUP} /etc/compressor
 
 %files test
-usr/bin/clickhouse-test
-usr/bin/clickhouse-performance-test
-usr/share/clickhouse-test
+/usr/bin/clickhouse-test
+/usr/bin/clickhouse-performance-test
+# folder
+/usr/share/clickhouse-test
 
 %changelog
 * Wed May 17 2017 Vadim Tkachenko
