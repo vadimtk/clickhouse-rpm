@@ -70,6 +70,13 @@ Summary: %{name} compressor binary
 %description compressor
 This package contains compressor utility for ClickHouse DBMS.
 
+%package test
+Summary: %{name} test suite
+Requires: %{name}-server = %{version}-%{release}
+
+%description test
+This package contains test suite for ClickHouse DBMS
+
 %prep
 # @CH_VERSION@="1.1.54289"
 # @CH_TAG@="stable"
@@ -132,28 +139,43 @@ cp %{_builddir}/%{buildsubdir}/debian/clickhouse.limits        %{buildroot}/etc/
 cp %{_builddir}/%{buildsubdir}/dbms/src/Server/config.xml      %{buildroot}/etc/clickhouse-server/
 cp %{_builddir}/%{buildsubdir}/dbms/src/Server/users.xml       %{buildroot}/etc/clickhouse-server/
 
-> %{_tmppath}/usr_bin_clickhouse_server_fileslist
-here=$(pwd)
-cd %{buildroot}/usr/bin
-for binfile in $(ls | grep -v client | grep -v compressor); do
-	echo "/usr/bin/$binfile" >> %{_tmppath}/usr_bin_clickhouse_server_fileslist
-done
-cd $here
-
 %clean
 rm -rf %{buildroot}
 
-%post compressor
-# include/source spec functions
-@CLICKHOUSE_SPEC_FUNCS_SH@
+%files client
+%config(noreplace) /etc/clickhouse-client/config.xml
+/usr/bin/clickhouse-client
+/usr/bin/clickhouse-local
+/usr/bin/clickhouse-benchmark
+/usr/bin/clickhouse-extract-from-config
+/usr/bin/clickhouse-format
 
-create_system_user $CLICKHOUSE_USER $CLICKHOUSE_GROUP $CLICKHOUSE_DATADIR
-mkdir -p /etc/compressor/conf.d
-chown -R ${CLICKHOUSE_USER}:${CLICKHOUSE_GROUP} /etc/compressor
+%post client
+mkdir -p /etc/clickhouse-client/conf.d
+chown -R clickhouse: /etc/clickhouse-client
+
+%files server
+%config(noreplace) /etc/security/limits.d/clickhouse.conf
+/etc/cron.d/clickhouse-server
+/etc/init.d/clickhouse-server
+# TODO
+#/etc/systemd/system/clickhouse-server.service
+/usr/bin/clickhouse
+/usr/bin/clickhouse-server
+/usr/bin/clickhouse-clang
+/usr/bin/clickhouse-lld
+# folder
+/usr/share/clickhouse
 
 %post server
 if [ $1 = 1 ]; then
 	/sbin/chkconfig --add clickhouse-server
+#   if [ -x "/bin/systemctl" ] && [ -f /etc/systemd/system/clickhouse-server.service ]; then
+#        /bin/systemctl daemon-reload
+#        /bin/systemctl enable clickhouse-server
+#    else
+#        if [ -x "/etc/init.d/clickhouse-ser
+
 fi
 
 # include/source spec functions
@@ -195,18 +217,22 @@ fi
 %config(noreplace) /etc/clickhouse-server/config.xml
 %config(noreplace) /etc/clickhouse-server/users.xml
 
-%files server -f %{_tmppath}/usr_bin_clickhouse_server_fileslist
-%config(noreplace) /etc/security/limits.d/clickhouse.conf
-/etc/cron.d/clickhouse-server
-/etc/init.d/clickhouse-server
-/usr/share/clickhouse
-
-%files client
-%config(noreplace) /etc/clickhouse-client/config.xml
-/usr/bin/clickhouse-client
-
 %files compressor
 /usr/bin/clickhouse-compressor
+
+%post compressor
+# include/source spec functions
+@CLICKHOUSE_SPEC_FUNCS_SH@
+
+create_system_user $CLICKHOUSE_USER $CLICKHOUSE_GROUP $CLICKHOUSE_DATADIR
+mkdir -p /etc/compressor/conf.d
+chown -R ${CLICKHOUSE_USER}:${CLICKHOUSE_GROUP} /etc/compressor
+
+%files test
+/usr/bin/clickhouse-test
+/usr/bin/clickhouse-performance-test
+# folder
+/usr/share/clickhouse-test
 
 %changelog
 * Wed May 17 2017 Vadim Tkachenko
