@@ -33,7 +33,7 @@
 Summary: Yandex ClickHouse DBMS
 Name: clickhouse
 Version: @CH_VERSION@
-Release: 4%{?dist}
+Release: 1%{?dist}
 License: Apache License 2.0
 Group: Applications/Databases
 Source: ClickHouse-@CH_VERSION@-@CH_TAG@.zip
@@ -73,6 +73,10 @@ Requires: %{name}-server = %{version}-%{release}
 %description test
 This package contains test suite for ClickHouse DBMS
 
+##
+## prep stage
+##
+
 %prep
 # @CH_VERSION@="1.1.54289"
 # @CH_TAG@="stable"
@@ -97,6 +101,10 @@ sed -i -- "s/VERSION_REVISION .*)/VERSION_REVISION ${CH_VERSION_ARR[2]})/g"   db
 # VERSION_DESCRIBE=v1.1.54289-stable
 sed -i -- "s/VERSION_DESCRIBE .*)/VERSION_DESCRIBE v@CH_VERSION@-@CH_TAG@)/g" dbms/cmake/version.cmake
 
+##
+## build stage
+##
+
 %build
 # we are in BUILD/ClickHouse-%{version}-@CH_TAG@ folder now
 
@@ -106,6 +114,10 @@ cd build
 $CMAKE .. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE:STRING=Release @CMAKE_OPTIONS@
 make %{?_smp_mflags}
 cd ..
+
+##
+## install stage
+##
 
 %install
 rm -rf %{buildroot}
@@ -135,8 +147,16 @@ cp %{_builddir}/%{buildsubdir}/debian/clickhouse.limits        %{buildroot}/etc/
 cp %{_builddir}/%{buildsubdir}/dbms/src/Server/config.xml      %{buildroot}/etc/clickhouse-server/
 cp %{_builddir}/%{buildsubdir}/dbms/src/Server/users.xml       %{buildroot}/etc/clickhouse-server/
 
+##
+## clean stage
+##
+
 %clean
 rm -rf %{buildroot}
+
+##
+## client package
+##
 
 %files client
 %config(noreplace) /etc/clickhouse-client/config.xml
@@ -159,6 +179,9 @@ chown -R ${CLICKHOUSE_USER}:${CLICKHOUSE_GROUP} /etc/clickhouse-client
 mkdir -p /etc/compressor/conf.d
 chown -R ${CLICKHOUSE_USER}:${CLICKHOUSE_GROUP} /etc/compressor
 
+##
+## server package
+##
 
 %files server
 %config(noreplace) /etc/security/limits.d/clickhouse.conf
@@ -219,15 +242,27 @@ if [ $1 -ge 1 ]; then
 	/sbin/service clickhouse-server restart >/dev/null 2>&1
 fi
 
+##
+## server-common package
+##
+
 %files server-common
 %config(noreplace) /etc/clickhouse-server/config.xml
 %config(noreplace) /etc/clickhouse-server/users.xml
+
+##
+## test package
+##
 
 %files test
 /usr/bin/clickhouse-test
 /usr/bin/clickhouse-performance-test
 # folder
 /usr/share/clickhouse-test
+
+##
+##
+##
 
 %changelog
 * Wed May 17 2017 Vadim Tkachenko
