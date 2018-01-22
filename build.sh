@@ -92,12 +92,54 @@ CMAKE_OPTIONS=""
 ##
 ##
 ##
+function set_print_commands()
+{
+	set -x
+}
+
+##
+##
+##
+function banner()
+{
+	# disable print commands
+	set +x
+
+	# write banner
+
+	# all params as one string
+	local str="${*}"
+
+	# str len in chars (not bytes)
+	local char_len=${#str}
+
+	# header has '## ' on the left and ' ##' on the right thus 6 chars longer that the str
+	local head_len=$((char_len+6))
+
+	# build line of required length '###########################'
+	local head=""
+	for i in $(seq 1 ${head_len}); do
+		head="${head}#"
+	done
+
+	# build banner
+	local res="${head}
+## ${str} ##
+${head}"
+
+	# display banner
+	echo "$res"
+
+	# and return back print commands setting
+	set_print_commands
+}
+
+##
+##
+##
 function install_general_dependencies()
 {
-	echo "####################################"
-	echo "### Install general dependencies ###"
-	echo "####################################"
-
+	banner "Install general dependencies"
 	sudo yum install -y git wget curl zip unzip sed
 }
 
@@ -106,10 +148,7 @@ function install_general_dependencies()
 ##
 function install_rpm_dependencies()
 {
-	echo "##############################"
-        echo "### RPM build dependencies ###"
-	echo "##############################"
-
+        banner "RPM build dependencies"
 	sudo yum install -y rpm-build redhat-rpm-config createrepo
 }
 
@@ -118,9 +157,7 @@ function install_rpm_dependencies()
 ##
 function install_mysql_libs()
 {
-	echo "####################################"
-	echo "### Install MySQL client library ###"
-	echo "####################################"
+	banner "Install MySQL client library"
 
 	# which repo should be used
 	# http://yum.mariadb.org/10.2/fedora26-amd64
@@ -145,9 +182,7 @@ EOF"
 ##
 function install_build_process_dependencies()
 {
-	echo "###########################"
-	echo "### Install build tools ###"
-	echo "###########################"
+	banner "Install build tools"
 
 	sudo yum install -y m4 make
 
@@ -162,9 +197,7 @@ function install_build_process_dependencies()
 		sudo yum install -y gcc-c++ libstdc++-static cmake
 	fi
 
-	echo "###################################"
-	echo "### Install CH dev dependencies ###"
-	echo "###################################"
+	banner "Install CH dev dependencies"
 
 	# libicu-devel -  ICU (support for collations and charset conversion functions
 	# libtool-ltdl-devel - cooperate with dynamic libs
@@ -176,9 +209,7 @@ function install_build_process_dependencies()
 ##
 function install_workarounds()
 {
-	echo "###########################"
-	echo "### Install workarounds ###"
-	echo "###########################"
+	banner "Install workarounds"
 
 	# Now all workarounds are included into CMAKE_OPTIONS
 }
@@ -188,9 +219,7 @@ function install_workarounds()
 ##
 function install_dependencies()
 {
-	echo "############################"
-	echo "### Install dependencies ###"
-	echo "############################"
+	banner "Install dependencies"
 
 	install_general_dependencies
 	install_rpm_dependencies
@@ -339,9 +368,7 @@ EOF"
 ##
 function build_dependencies()
 {
-	echo "##########################"
-	echo "### Build dependencies ###"
-	echo "##########################"
+	banner "Build dependencies"
 	
 	if [[ $EUID -ne 0 ]]; then
 		echo "You must be a root user" 2>&1
@@ -356,9 +383,7 @@ function build_dependencies()
 
 	cd dependencies
 
-	echo "####################################"
-	echo "### Install development packages ###"
-	echo "####################################"
+	banner "Install development packages"
 
 	# Build process support requirements
 	yum -y install rpm-build redhat-rpm-config gcc-c++ \
@@ -370,9 +395,7 @@ function build_dependencies()
 	# libtool-ltdl-devel - cooperate with dynamic libs
 	yum -y zlib-devel openssl-devel libicu-devel libtool-ltdl-devel unixODBC-devel readline-devel
 
-	echo "####################################"
-	echo "### Install MySQL client library ###"
-	echo "####################################"
+	banner "Install MySQL client library"
 
 	if ! rpm --query mysql57-community-release; then
 		yum -y --nogpgcheck install http://dev.mysql.com/get/mysql57-community-release-el${DISTR_MAJOR}-9.noarch.rpm
@@ -383,9 +406,7 @@ function build_dependencies()
 		ln -s /usr/lib64/mysql/libmysqlclient.a /usr/lib64/libmysqlclient.a
 	fi
 
-	echo "###################"
-	echo "### Build cmake ###"
-	echo "###################"
+	banner "Build cmake"
 
 	wget https://cmake.org/files/v3.9/cmake-3.9.3.tar.gz
 	tar xf cmake-3.9.3.tar.gz
@@ -462,14 +483,8 @@ function build_dependencies()
 ##
 function list_RPMs()
 {
-	echo "######################################################"
-	echo "### Looking for RPMs at                            ###"
-	echo "### $RPMS_DIR/clickhouse*.rpm                      ###"
-	echo "######################################################"
-
+	banner "Looking for RPMs $RPMS_DIR/clickhouse*.rpm"
 	ls -l "$RPMS_DIR"/clickhouse*.rpm
-
-	echo "######################################################"
 }
 
 ##
@@ -477,14 +492,8 @@ function list_RPMs()
 ##
 function list_SRPMs()
 {
-	echo "######################################################"
-	echo "### Looking for sRPMs at                           ###"
-	echo "### $SRPMS_DIR/clickhouse*                         ###"
-	echo "######################################################"
-
+	banner "Looking for sRPMs at $SRPMS_DIR/clickhouse*"
 	ls -l "$SRPMS_DIR"/clickhouse*
-
-	echo "######################################################"
 }
 
 ##
@@ -492,10 +501,7 @@ function list_SRPMs()
 ##
 function mkdirs()
 {
-	echo "####################"
-	echo "### Prepare dirs ###"
-	echo "####################"
-
+	banner "Prepare dirs"
 	mkdir -p "$RPMBUILD_DIR"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
 }
 
@@ -504,42 +510,37 @@ function mkdirs()
 ##
 function prepare_sources()
 {
-	echo "Ensure SOURCES dir is in place"
+	banner "Ensure SOURCES dir is in place"
 	mkdirs
 
 	echo "Clean sources dir"
 	rm -rf "$SOURCES_DIR"/ClickHouse*
 
 	if [ "$USE_SOURCES_FROM" == "releasefile" ]; then
-		echo "Downloading ClickHouse source archive v${CH_VERSION}-${CH_TAG}.zip"
+		banner "Downloading ClickHouse source archive v${CH_VERSION}-${CH_TAG}.zip"
 		wget --progress=dot:giga "https://github.com/yandex/ClickHouse/archive/v${CH_VERSION}-${CH_TAG}.zip" --output-document="$SOURCES_DIR/ClickHouse-${CH_VERSION}-${CH_TAG}.zip"
 
 	elif [ "$USE_SOURCES_FROM" == "git" ]; then
 		echo "Cloning from github v${CH_VERSION}-${CH_TAG} into $SOURCES_DIR/ClickHouse-${CH_VERSION}-${CH_TAG}"
-		echo "cd into $SOURCES_DIR"
 
 		cd "$SOURCES_DIR"
 
 		# Go older way because older versions of git (CentOS 6.9, for example) do not understand new syntax of branches etc
 		# Clone specified branch with all submodules into $SOURCES_DIR/ClickHouse-$CH_VERSION-$CH_TAG folder
 		echo "Clone ClickHouse repo"
-		echo "git clone https://github.com/yandex/ClickHouse ClickHouse-${CH_VERSION}-${CH_TAG}"
 		git clone "https://github.com/yandex/ClickHouse" "ClickHouse-${CH_VERSION}-${CH_TAG}"
 
-		echo "cd ClickHouse-${CH_VERSION}-${CH_TAG}"
 		cd "ClickHouse-${CH_VERSION}-${CH_TAG}"
 
 		echo "Checkout specific tag v${CH_VERSION}-${CH_TAG}"
-		echo "git checkout v${CH_VERSION}-${CH_TAG}"
 		git checkout "v${CH_VERSION}-${CH_TAG}"
 
 		echo "Update submodules"
-		echo "git submodule update --init --recursive"
 		git submodule update --init --recursive
 
 		cd "$SOURCES_DIR"
 
-		# Move files into .zip with minimal compression
+		echo "Move files into .zip with minimal compression"
 		zip -r0mq "ClickHouse-${CH_VERSION}-${CH_TAG}.zip" "ClickHouse-${CH_VERSION}-${CH_TAG}"
 
 		echo "Ensure .zip file is available"
@@ -558,12 +559,10 @@ function prepare_sources()
 ##
 function build_spec_file()
 {
-	echo "ensure SPECS dir is in place"
+	banner "Ensure SPECS dir is in place"
 	mkdirs
 
-	echo "########################"
-	echo "### Build .spec file ###"
-	echo "########################"
+	banner "Build .spec file"
 
 	CMAKE_OPTIONS="${CMAKE_OPTIONS} -DHAVE_THREE_PARAM_SCHED_SETAFFINITY=1 -DOPENSSL_SSL_LIBRARY=/usr/lib64/libssl.so -DOPENSSL_CRYPTO_LIBRARY=/usr/lib64/libcrypto.so -DOPENSSL_INCLUDE_DIR=/usr/include/openssl"
 
@@ -577,6 +576,7 @@ r $SRC_DIR/clickhouse.spec.funcs.sh
 d }" \
 		> "$SPECS_DIR/clickhouse.spec"
 
+	banner "Looking for .spec file"
 	ls -l "$SPECS_DIR/clickhouse.spec"
 }
 
@@ -586,24 +586,18 @@ d }" \
 ##
 function build_RPMs()
 {
-	echo "Ensure build dirs are in place"
+	banner "Ensure build dirs are in place"
 	mkdirs
 
 	echo "Clean BUILD dir"
 	rm -rf "$BUILD_DIR"/ClickHouse*
 
-	echo "########################"
-	echo "### Setup RPM Macros ###"
-	echo "########################"
-
+	banner "Setup RPM Macros"
 	echo '%_topdir '"$RPMBUILD_DIR"'
 %_tmppath '"$TMP_DIR"'
 %_smp_mflags  -j'"$THREADS" > ~/.rpmmacros
 
-	echo "###############################"
-	echo "### Setup path to compilers ###"
-	echo "###############################"
-
+	banner "Setup path to compilers"
 	if os_centos; then
 		export CMAKE=cmake3
 		export CC=/opt/rh/devtoolset-7/root/usr/bin/gcc
@@ -621,14 +615,10 @@ function build_RPMs()
 	echo "cd into $CWD_DIR"
 	cd "$CWD_DIR"
 
-	echo "##################"
-	echo "### Build RPMs ###"
-	echo "##################"
-
-	echo "rpmbuild ${CH_VERSION}-${CH_TAG}"
+	banner "Build RPMs"
 	rpmbuild -bs "$SPECS_DIR/clickhouse.spec"
 	rpmbuild -bb "$SPECS_DIR/clickhouse.spec"
-	echo "rpmbuild completed ${CH_VERSION}-${CH_TAG}"
+	banner "Build RPMs completed"
 
 	# Display results
 	list_RPMs
@@ -644,7 +634,7 @@ function build_RPMs()
 ##
 function build_packages()
 {
-	echo "ensure build dirs are in place"
+	banner "Ensure build dirs are in place"
 	mkdirs
 
 	echo "Clean up after previous run"
@@ -652,9 +642,7 @@ function build_packages()
 	rm -f "$SRPMS_DIR"/clickhouse*
 	rm -f "$SPECS_DIR"/clickhouse.spec
 
-	echo "###########################"
-	echo "### Create RPM packages ###"
-	echo "###########################"
+	banner "Create RPM packages"
 	
 	# Prepare $SOURCES_DIR/ClickHouse-$CH_VERSION-$CH_TAG.zip file
 	prepare_sources
@@ -671,22 +659,25 @@ function build_packages()
 ##
 function usage()
 {
+	# dispable commands print
+	set +x
+
 	echo "Usage:"
 	echo "./build.sh all          - most popular point of entry - the same as idep_all"
-	echo ""
+	echo
 	echo "./build.sh idep_all     - install dependencies from RPMs, download CH sources and build RPMs"
 	echo "./build.sh bdep_all     - build dependencies from sources, download CH sources and build RPMs !!! YOU MAY NEED TO UNDERSTAND INTERNALS !!!"
-	echo ""
+	echo
 	echo "./build.sh install_deps - just install dependencies (do not download sources, do not build RPMs)"
 	echo "./build.sh build_deps   - just build dependencies (do not download sources, do not build RPMs)"
 	echo "./build.sh src          - just download sources"
 	echo "./build.sh spec         - just create SPEC file (do not download sources, do not build RPMs)"
 	echo "./build.sh packages     - download sources, create SPEC file and build RPMs (do not install dependencies)"
 	echo "./build.sh rpms         - just build RPMs (do not download sources, do not create SPEC file, do not install dependencies)"
-	echo ""
+	echo
 	echo "./build.sh publish packagecloud <packagecloud USER ID> - publish packages on packagecloud as USER"
 	echo "./build.sh delete packagecloud <packagecloud USER ID>  - delete packages on packagecloud as USER"
-	echo ""
+	echo
 	echo "./build.sh publish ssh  - publish packages via SSH"
 	
 	exit 0
@@ -709,36 +700,46 @@ fi
 COMMAND="$1"
 
 if [ "$COMMAND" == "all" ]; then
+	set_print_commands
 	install_dependencies
 	build_packages
 
 elif [ "$COMMAND" == "idep_all" ]; then
+	set_print_commands
 	install_dependencies
 	build_packages
 
 elif [ "$COMMAND" == "bdep_all" ]; then
+	set_print_commands
 	build_dependencies
 	build_packages
 
 elif [ "$COMMAND" == "install_deps" ]; then
+	set_print_commands
 	install_dependencies
 
 elif [ "$COMMAND" == "build_deps" ]; then
+	set_print_commands
 	build_dependencies
 
 elif [ "$COMMAND" == "src" ]; then
+	set_print_commands
 	prepare_sources
 
 elif [ "$COMMAND" == "spec" ]; then
+	set_print_commands
 	build_spec_file
 
 elif [ "$COMMAND" == "packages" ]; then
+	set_print_commands
 	build_packages
 
 elif [ "$COMMAND" == "rpms" ]; then
+	set_print_commands
 	build_RPMs
 
 elif [ "$COMMAND" == "publish" ]; then
+	set_print_commands
 	PUBLISH_TARGET="$2"
 	if [ "$PUBLISH_TARGET" == "packagecloud" ]; then
 		# run publish script with all the rest of CLI params
@@ -753,6 +754,7 @@ elif [ "$COMMAND" == "publish" ]; then
 	fi
 
 elif [ "$COMMAND" == "delete" ]; then
+	set_print_commands
 	PUBLISH_TARGET="$2"
 	if [ "$PUBLISH_TARGET" == "packagecloud" ]; then
 		# run publish script with all the rest of CLI params
