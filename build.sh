@@ -229,140 +229,6 @@ function install_dependencies()
 	install_workarounds
 }
 
-
-##
-## Install all required components before building RPMs
-##
-function install_dependencies_old()
-{
-	echo "############################"
-	echo "### Install dependencies ###"
-	echo "############################"
-	
-	echo "####################################"
-	echo "### Install development packages ###"
-	echo "####################################"
-
-	DISTRO_PACKAGES=""
-	if [ $DISTR_MAJOR == 6 ]; then
-		DISTRO_PACKAGES="scons"
-	fi
-
-	if ! sudo yum -y install $DISTRO_PACKAGES \
-		m4 rpm-build redhat-rpm-config createrepo \
-		cmake make gcc-c++ \
-		zip wget \
-		subversion git \
-		readline-devel glib2-devel unixODBC-devel \
-		python-devel openssl-devel openssl-static libicu-devel \
-		zlib-devel libtool-ltdl-devel xz-devel
-	then 
-		echo "FAILED to install development packages"
-		exit 1
-	fi
-
-	echo "##########################"
-	echo "### Install Python 2.7 ###"
-	echo "##########################"
-
-	# select Python package for installation
-	PYTHON_PACKAGE="python"
-	if [ $DISTR_MAJOR == 25 ] || [ $DISTR_MAJOR == 26 ]; then
-		PYTHON_PACKAGE="python2"
-	elif [ $DISTR_MAJOR == 6 ]; then
-		PYTHON_PACKAGE="python27"
-	fi
-	# and install Python
-	sudo yum install -y $PYTHON_PACKAGE
-
-	echo "###################"
-	echo "### Install GCC ###"
-	echo "###################"
-
-	if [ $DISTR_MAJOR == 6 ] || [ $DISTR_MAJOR == 7 ]; then
-		# CentOS 6/7
-		# RHEL 6/7
-
-		# Connect EPEL repository
-		if yum list installed epel-release >/dev/null 2>&1; then
-			echo "epel already installed"
-		else
-			if ! sudo yum -y --nogpgcheck install https://dl.fedoraproject.org/pub/epel/epel-release-latest-$DISTR_MAJOR.noarch.rpm; then
-				echo "FAILED to install epel"
-				exit 1
-			fi
-		fi
-
-		if ! sudo yum -y install cmake3; then
-			echo "FAILED to install cmake3"
-			exit 1
-		fi
-	fi
-
-	if [ $DISTR_MAJOR == 7 ]; then
-		if ! sudo yum -y install scons; then
-			echo "FAILED to install scons"
-			exit 1
-		fi
-	fi
-
-
-	if [ $DISTR_MAJOR == 6 ] || [ $DISTR_MAJOR == 7 ]; then
-		# CentOS 6/7
-		# RHEL 6/7
-		# Install gcc 6 from compatibility packages
-
-		# Enable Software Collections
-		# https://www.softwarecollections.org/en/scls/rhscl/devtoolset-6/
-		if os_centos; then
-			sudo yum install -y centos-release-scl
-		else
-			# RHEL flavors
-
-			# vanilla RHEL
-			sudo yum-config-manager --enable rhel-server-rhscl-${DISR_MAJOR}-rpms
-
-			# AWS-based RHEL
-			sudo yum-config-manager --enable rhui-REGION-rhel-server-extras
-			sudo yum-config-manager --enable rhui-REGION-rhel-server-optional
-			sudo yum-config-manager --enable rhui-REGION-rhel-server-supplementary
-
-			sudo yum-config-manager --enable rhui-REGION-rhel-server-rhscl
-			sudo yum-config-manager --enable rhui-REGION-rhel-server-debug-rhscl
-		fi
-
-		# and install GCC6 provided by Software Collections
-		sudo yum install -y devtoolset-6-gcc*
-
-	elif [ $DISTR_MAJOR == 25 ] || [ $DISTR_MAJOR == 26 ]; then
-		# Fedora 25 already has gcc 6, no need to install
-		# Fedora 26 already has gcc 7, no need to install
-		# Install static libs
-		sudo yum install -y libstdc++-static
-	fi
-
-	echo "####################################"
-	echo "### Install MySQL client library ###"
-	echo "####################################"
-
-	# which repo should be used
-	# http://yum.mariadb.org/10.2/fedora26-amd64"
-	# http://yum.mariadb.org/10.2/centos6-amd64"
-	# http://yum.mariadb.org/10.2/centos7-amd64"
-	MARIADB_REPO_URL="http://yum.mariadb.org/10.2/${OS}${DISTR_MAJOR}-amd64"
-
-	# create repo file
-	sudo bash -c "cat << EOF > /etc/yum.repos.d/mariadb.repo
-[mariadb]
-name=MariaDB
-baseurl=${MARIADB_REPO_URL}
-gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
-gpgcheck=1
-EOF"
-
-	sudo yum install -y MariaDB-devel MariaDB-shared
-}
-
 ##
 ##
 ##
@@ -416,9 +282,7 @@ function build_dependencies()
 	make install
 	cd ..
 
-	echo "###################"
-	echo "### Build GCC 7 ###"
-	echo "###################"
+	banner "Build GCC 7"
 
 	wget http://mirror.linux-ia64.org/gnu/gcc/releases/gcc-7.2.0/gcc-7.2.0.tar.gz
 	tar xf gcc-7.2.0.tar.gz
@@ -457,9 +321,7 @@ function build_dependencies()
 	yum clean all
 	yum install python27
 
-	echo "###################"
-	echo "### Build Clang ###"
-	echo "###################"
+	banner "Build Clang"
 
 	mkdir llvm
 	cd llvm
