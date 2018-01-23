@@ -545,15 +545,19 @@ function usage()
 	exit 0
 }
 
-
-os_detect
-
-if ! os_rpm_based; then
-	echo "We need RPM-based OS in order to build RPM packages."
-	exit 1
-else
-	echo "RPM-based OS detected, continue"
-fi
+##
+##
+##
+function ensure_os_rpm_based()
+{
+	os_detect
+	if ! os_rpm_based; then
+		echo "We need RPM-based OS in order to build RPM packages."
+		exit 1
+	else
+		echo "RPM-based OS detected, continue"
+	fi
+}
 
 if [ -z "$1" ]; then
 	usage
@@ -562,25 +566,30 @@ fi
 COMMAND="$1"
 
 if [ "$COMMAND" == "all" ]; then
+	ensure_os_rpm_based
 	set_print_commands
 	install_dependencies
 	build_packages
 
 elif [ "$COMMAND" == "idep_all" ]; then
+	ensure_os_rpm_based
 	set_print_commands
 	install_dependencies
 	build_packages
 
 elif [ "$COMMAND" == "bdep_all" ]; then
+	ensure_os_rpm_based
 	set_print_commands
 	build_dependencies
 	build_packages
 
 elif [ "$COMMAND" == "install_deps" ]; then
+	ensure_os_rpm_based
 	set_print_commands
 	install_dependencies
 
 elif [ "$COMMAND" == "build_deps" ]; then
+	ensure_os_rpm_based
 	set_print_commands
 	build_dependencies
 
@@ -593,15 +602,16 @@ elif [ "$COMMAND" == "spec" ]; then
 	build_spec_file
 
 elif [ "$COMMAND" == "packages" ]; then
+	ensure_os_rpm_based
 	set_print_commands
 	build_packages
 
 elif [ "$COMMAND" == "rpms" ]; then
+	ensure_os_rpm_based
 	set_print_commands
 	build_RPMs
 
 elif [ "$COMMAND" == "publish" ]; then
-	set_print_commands
 	PUBLISH_TARGET="$2"
 	if [ "$PUBLISH_TARGET" == "packagecloud" ]; then
 		# run publish script with all the rest of CLI params
@@ -616,7 +626,6 @@ elif [ "$COMMAND" == "publish" ]; then
 	fi
 
 elif [ "$COMMAND" == "delete" ]; then
-	set_print_commands
 	PUBLISH_TARGET="$2"
 	if [ "$PUBLISH_TARGET" == "packagecloud" ]; then
 		# run publish script with all the rest of CLI params
