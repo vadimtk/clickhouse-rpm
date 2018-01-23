@@ -33,7 +33,7 @@
 Summary: Yandex ClickHouse DBMS
 Name: clickhouse
 Version: @CH_VERSION@
-Release: 3%{?dist}
+Release: 1%{?dist}
 License: Apache License 2.0
 Group: Applications/Databases
 Source: ClickHouse-@CH_VERSION@-@CH_TAG@.zip
@@ -60,21 +60,22 @@ This package contains server binaries for ClickHouse DBMS.
 %package client
 Summary: %{name} client binary
 Requires: %{name}-server = %{version}-%{release}
+# compressor is now part of client package
+Obsoletes: %{name}-compressor
 
 %description client
 This package contains client binary for ClickHouse DBMS.
 
-%package compressor
-Summary: %{name} compressor binary
-
-%description compressor
-This package contains compressor utility for ClickHouse DBMS.
-
 %package test
-Summary: %{name} test binary
+Summary: %{name} test suite
+Requires: %{name}-server = %{version}-%{release}
 
 %description test
-This package contains tests for ClickHouse DBMS.
+This package contains test suite for ClickHouse DBMS
+
+##
+## prep stage
+##
 
 %prep
 # @CH_VERSION@="1.1.54289"
@@ -100,6 +101,10 @@ sed -i -- "s/VERSION_REVISION .*)/VERSION_REVISION ${CH_VERSION_ARR[2]})/g"   db
 # VERSION_DESCRIBE=v1.1.54289-stable
 sed -i -- "s/VERSION_DESCRIBE .*)/VERSION_DESCRIBE v@CH_VERSION@-@CH_TAG@)/g" dbms/cmake/version.cmake
 
+##
+## build stage
+##
+
 %build
 # we are in BUILD/ClickHouse-%{version}-@CH_TAG@ folder now
 
@@ -109,6 +114,10 @@ cd build
 $CMAKE .. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE:STRING=Release @CMAKE_OPTIONS@
 make %{?_smp_mflags}
 cd ..
+
+##
+## install stage
+##
 
 %install
 rm -rf %{buildroot}
@@ -138,28 +147,64 @@ cp %{_builddir}/%{buildsubdir}/debian/clickhouse.limits        %{buildroot}/etc/
 cp %{_builddir}/%{buildsubdir}/dbms/src/Server/config.xml      %{buildroot}/etc/clickhouse-server/
 cp %{_builddir}/%{buildsubdir}/dbms/src/Server/users.xml       %{buildroot}/etc/clickhouse-server/
 
-> %{_tmppath}/usr_bin_clickhouse_server_fileslist
-here=$(pwd)
-cd %{buildroot}/usr/bin
-for binfile in $(ls | grep -v client | grep -v compressor | grep -v test); do
-	echo "/usr/bin/$binfile" >> %{_tmppath}/usr_bin_clickhouse_server_fileslist
-done
-cd $here
+##
+## clean stage
+##
 
 %clean
 rm -rf %{buildroot}
 
-%post compressor
+##
+## client package
+##
+
+%files client
+%config(noreplace) /etc/clickhouse-client/config.xml
+/usr/bin/clickhouse-client
+/usr/bin/clickhouse-local
+/usr/bin/clickhouse-benchmark
+/usr/bin/clickhouse-extract-from-config
+/usr/bin/clickhouse-format
+/usr/bin/clickhouse-compressor
+
+%post client
 # include/source spec functions
 @CLICKHOUSE_SPEC_FUNCS_SH@
 
 create_system_user $CLICKHOUSE_USER $CLICKHOUSE_GROUP $CLICKHOUSE_DATADIR
+
+mkdir -p /etc/clickhouse-client/conf.d
+chown -R ${CLICKHOUSE_USER}:${CLICKHOUSE_GROUP} /etc/clickhouse-client
+
 mkdir -p /etc/compressor/conf.d
 chown -R ${CLICKHOUSE_USER}:${CLICKHOUSE_GROUP} /etc/compressor
+
+##
+## server package
+##
+
+%files server
+%config(noreplace) /etc/security/limits.d/clickhouse.conf
+/etc/cron.d/clickhouse-server
+/etc/init.d/clickhouse-server
+# TODO
+#/etc/systemd/system/clickhouse-server.service
+/usr/bin/clickhouse
+/usr/bin/clickhouse-server
+/usr/bin/clickhouse-clang
+/usr/bin/clickhouse-lld
+# folder
+/usr/share/clickhouse
 
 %post server
 if [ $1 = 1 ]; then
 	/sbin/chkconfig --add clickhouse-server
+#   if [ -x "/bin/systemctl" ] && [ -f /etc/systemd/system/clickhouse-server.service ]; then
+#        /bin/systemctl daemon-reload
+#        /bin/systemctl enable clickhouse-server
+#    else
+#        if [ -x "/etc/init.d/clickhouse-ser
+
 fi
 
 # include/source spec functions
@@ -197,27 +242,27 @@ if [ $1 -ge 1 ]; then
 	/sbin/service clickhouse-server restart >/dev/null 2>&1
 fi
 
+##
+## server-common package
+##
+
 %files server-common
 %config(noreplace) /etc/clickhouse-server/config.xml
 %config(noreplace) /etc/clickhouse-server/users.xml
 
+##
+## test package
+##
+
 %files test
 /usr/bin/clickhouse-test
 /usr/bin/clickhouse-performance-test
+# folder
 /usr/share/clickhouse-test
 
-%files server -f %{_tmppath}/usr_bin_clickhouse_server_fileslist
-%config(noreplace) /etc/security/limits.d/clickhouse.conf
-/etc/cron.d/clickhouse-server
-/etc/init.d/clickhouse-server
-/usr/share/clickhouse
-
-%files client
-%config(noreplace) /etc/clickhouse-client/config.xml
-/usr/bin/clickhouse-client
-
-%files compressor
-/usr/bin/clickhouse-compressor
+##
+##
+##
 
 %changelog
 * Wed May 17 2017 Vadim Tkachenko
