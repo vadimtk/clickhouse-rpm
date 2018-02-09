@@ -613,6 +613,8 @@ elif [ "$COMMAND" == "rpms" ]; then
 
 elif [ "$COMMAND" == "publish" ]; then
 	PUBLISH_TARGET="$2"
+
+	ensure_os_rpm_based
 	if [ "$PUBLISH_TARGET" == "packagecloud" ]; then
 		# run publish script with all the rest of CLI params
 		publish_packagecloud ${*:3}
