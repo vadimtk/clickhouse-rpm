@@ -79,7 +79,7 @@ function os_centos_7()
 ##
 function os_fedora()
 {
-	[ "$os" == "fedora" ]
+	[ "$OS" == "fedora" ]
 }
 
 ##
@@ -87,7 +87,7 @@ function os_fedora()
 ##
 function os_ubuntu()
 {
-	[ "$os" == "ubuntu" ]
+	[ "$OS" == "ubuntu" ]
 }
 
 ##
