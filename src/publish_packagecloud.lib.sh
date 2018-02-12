@@ -91,7 +91,7 @@ function publish_packagecloud_file()
 	fi
 }
 
-function publish_packagecloud()
+function publish_packagecloud_files_list()
 {
 	# Packagecloud user id. Ex.: 123ab45678c9012d3e4567890abcdef1234567890abcdef1
 	PACKAGECLOUD_ID=$1
@@ -111,18 +111,28 @@ function publish_packagecloud()
 			publish_packagecloud_file $PACKAGECLOUD_ID $PACKAGECLOUD_PATH $DISTRO_VERSION_ID $FILE
 		done
 	else
+		# Do not have any files specified. This is not particularly correct, may be event an error
+	fi
+}
+
+function publish_packagecloud()
+{
+	# Packagecloud user id. Ex.: 123ab45678c9012d3e4567890abcdef1234567890abcdef1
+	PACKAGECLOUD_ID=$1
+
+	# Path inside user's repo on packagecloud. Ex.: altinity/clickhouse
+	PACKAGECLOUD_PATH="altinity/clickhouse"
+
+	# Packagecloud distro version id. See packagecloud_distro_version_id() function. Ex.: 27
+	publish_packagecloud_distro_version_id
+	DISTRO_VERSION_ID=$?
+
+	if [ -n "$2" ]; then
+		# Have args specified. Treat it as a list of files to publish
+		publish_packagecloud_files_list $PACKAGECLOUD_ID ${@:2}
+	else
 		# Do not have any files specified. Publish RPMs from RPMS path
-		for RPM_FILE in $(ls "$RPMBUILD_DIR"/RPMS/x86_64/clickhouse*.rpm); do
-			# Path to RPM file to publish
-			if [[ "$RPM_FILE" = /* ]]; then
-				# already absolute path
-				RPM_FILE_PATH="$RPM_FILE"
-			else
-				# relative path
-				RPM_FILE_PATH="$RPMBUILD_DIR/RPMS/x86_64/$RPM_FILE"
-			fi
-			publish_packagecloud_file $PACKAGECLOUD_ID $PACKAGECLOUD_PATH $DISTRO_VERSION_ID $RPM_FILE_PATH
-		done
+		publish_packagecloud_files_list $PACKAGECLOUD_ID $(ls "$RPMBUILD_DIR"/RPMS/x86_64/clickhouse*.rpm)
 	fi
 }
 
