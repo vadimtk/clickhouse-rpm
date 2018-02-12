@@ -23,6 +23,12 @@ function publish_packagecloud_distro_version_id()
 	# FC25 - 179
 	# FC26 - 184
 	# JAVA - 167
+	# Ubuntu 14.04 LTS Trusty Tahr   - 20
+	# Ubuntu 16.04 LTS Xenial Xerus  - 165
+	# Ubuntu 18.04 LTS Bionic Beaver - 190
+	# Debian  9 stretch - 149
+	# Debian 10 buster  - 150
+
 
 	if os_centos; then
 		if [ $DISTR_MAJOR == 6 ]; then
@@ -40,6 +46,17 @@ function publish_packagecloud_distro_version_id()
 			return 184
 		else
 			echo "Unknown fedora distro"
+			exit 1
+		fi
+	elif os_ubuntu; then
+		if [ $DISTR_MAJOR == 14 ] && [ "${DISTR_MINOR}" == "04" ]; then
+			return 20
+		elif [ $DISTR_MAJOR == 16 ] && [ "${DISTR_MINOR}" == "04" ]; then
+			return 165
+		elif [ $DISTR_MAJOR == 18 ] && [ "${DISTR_MINOR}" == "04" ]; then
+			return 190
+		else
+			echo "Unknown ubuntu distro"
 			exit 1
 		fi
 	fi
@@ -60,13 +77,13 @@ function publish_packagecloud_file()
 	# Packagecloud distro version id. See packagecloud_distro_version_id() function. Ex.: 27
 	DISTRO_VERSION_ID=$3
 
-	# Path to RPM file to publish
-	RPM_FILE_PATH=$4
+	# Path to file to publish
+	FILE_PATH=$4
 
-	echo -n "Publishing file: $RPM_FILE_PATH"
+	echo -n "Publishing file: $FILE_PATH"
 	if curl --show-error --silent --output /dev/null -X POST https://$PACKAGECLOUD_ID:@packagecloud.io/api/v1/repos/$PACKAGECLOUD_PATH/packages.json \
 		-F "package[distro_version_id]=$DISTRO_VERSION_ID" \
-		-F "package[package_file]=@$RPM_FILE_PATH"; 
+		-F "package[package_file]=@$FILE_PATH"; 
 	then
 		echo "...OK"
 	else
