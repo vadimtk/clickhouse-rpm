@@ -79,7 +79,15 @@ function os_centos_7()
 ##
 function os_fedora()
 {
-	[ "$OS" == "fedora" ]
+	[ "$os" == "fedora" ]
+}
+
+##
+## is OS Ubuntu?
+##
+function os_ubuntu()
+{
+	[ "$os" == "ubuntu" ]
 }
 
 ##
