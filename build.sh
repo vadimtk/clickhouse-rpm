@@ -364,7 +364,8 @@ function list_SRPMs()
 function mkdirs()
 {
 	banner "Prepare dirs"
-	mkdir -p "$RPMBUILD_DIR"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+	mkdir -p "$RPMBUILD_DIR"/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
+	mkdir -p "$TMP_DIR"
 }
 
 ##
