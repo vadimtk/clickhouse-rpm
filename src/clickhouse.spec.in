@@ -166,10 +166,10 @@ rm -rf %{buildroot}
 %config(noreplace) /etc/clickhouse-client/config.xml
 /usr/bin/clickhouse-client
 /usr/bin/clickhouse-local
+/usr/bin/clickhouse-compressor
 /usr/bin/clickhouse-benchmark
 /usr/bin/clickhouse-extract-from-config
 /usr/bin/clickhouse-format
-/usr/bin/clickhouse-compressor
 
 %post client
 # include/source spec functions
@@ -197,6 +197,7 @@ chown -R ${CLICKHOUSE_USER}:${CLICKHOUSE_GROUP} /etc/compressor
 /usr/bin/clickhouse-server
 /usr/bin/clickhouse-clang
 /usr/bin/clickhouse-lld
+/usr/bin/clickhouse-copier
 # folder
 /usr/share/clickhouse
 
@@ -259,7 +260,10 @@ fi
 ##
 
 %files test
+%config(noreplace) /etc/clickhouse-server/client-test.xml
+%config(noreplace) /etc/clickhouse-server/server-test.xml
 /usr/bin/clickhouse-test
+/usr/bin/clickhouse-test-server
 /usr/bin/clickhouse-performance-test
 # folder
 /usr/share/clickhouse-test
