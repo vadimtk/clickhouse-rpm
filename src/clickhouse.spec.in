@@ -193,6 +193,7 @@ chown -R ${CLICKHOUSE_USER}:${CLICKHOUSE_GROUP} /etc/compressor
 /usr/bin/clickhouse-server
 /usr/bin/clickhouse-clang
 /usr/bin/clickhouse-lld
+/usr/bin/clickhouse-copier
 # folder
 /usr/share/clickhouse
 
@@ -256,7 +257,10 @@ fi
 
 %files test
 /usr/bin/clickhouse-test
+/usr/bin/clickhouse-test-server
 /usr/bin/clickhouse-performance-test
+/etc/clickhouse-client/client-test.xml
+/etc/clickhouse-server/server-test.xml
 # folder
 /usr/share/clickhouse-test
 
