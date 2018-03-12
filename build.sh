@@ -30,7 +30,7 @@
 # limitations under the License.
 
 # Git version of ClickHouse that we package
-CH_VERSION="${CH_VERSION:-1.1.54343}"
+CH_VERSION="${CH_VERSION:-1.1.54362}"
 
 # Git tag marker (stable/testing)
 CH_TAG="${CH_TAG:-stable}"
@@ -364,7 +364,8 @@ function list_SRPMs()
 function mkdirs()
 {
 	banner "Prepare dirs"
-	mkdir -p "$RPMBUILD_DIR"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+	mkdir -p "$RPMBUILD_DIR"/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
+	mkdir -p "$TMP_DIR"
 }
 
 ##

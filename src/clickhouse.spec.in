@@ -34,11 +34,15 @@ Summary: Yandex ClickHouse DBMS
 Name: clickhouse
 Version: @CH_VERSION@
 Release: 1%{?dist}
+# Source0: %{name}-%{unmangled_version}.tar.gz
+Source: ClickHouse-@CH_VERSION@-@CH_TAG@.zip
 License: Apache License 2.0
 Group: Applications/Databases
-Source: ClickHouse-@CH_VERSION@-@CH_TAG@.zip
-Url: https://clickhouse.yandex/
 BuildRoot: %{_tmppath}/%{name}-%{version}-build
+# Prefix: %{_prefix}
+Vendor: Yandex
+Packager: Altinity
+Url: https://clickhouse.yandex/
 
 %description
 ClickHouse is an open-source column-oriented database management
@@ -134,7 +138,7 @@ mkdir -p %{buildroot}/etc/clickhouse-server
 mkdir -p %{buildroot}/etc/clickhouse-client
 mkdir -p %{buildroot}/etc/init.d
 mkdir -p %{buildroot}/etc/cron.d
-mkdir -p %{buildroot}/etc/security/limits.d/
+mkdir -p %{buildroot}/etc/security/limits.d
 
 mkdir -p %{buildroot}/usr/bin
 mkdir -p %{buildroot}/usr/share/clickhouse/bin
@@ -162,10 +166,10 @@ rm -rf %{buildroot}
 %config(noreplace) /etc/clickhouse-client/config.xml
 /usr/bin/clickhouse-client
 /usr/bin/clickhouse-local
+/usr/bin/clickhouse-compressor
 /usr/bin/clickhouse-benchmark
 /usr/bin/clickhouse-extract-from-config
 /usr/bin/clickhouse-format
-/usr/bin/clickhouse-compressor
 
 %post client
 # include/source spec functions
@@ -193,6 +197,7 @@ chown -R ${CLICKHOUSE_USER}:${CLICKHOUSE_GROUP} /etc/compressor
 /usr/bin/clickhouse-server
 /usr/bin/clickhouse-clang
 /usr/bin/clickhouse-lld
+/usr/bin/clickhouse-copier
 # folder
 /usr/share/clickhouse
 
@@ -255,7 +260,10 @@ fi
 ##
 
 %files test
+%config(noreplace) /etc/clickhouse-client/client-test.xml
+%config(noreplace) /etc/clickhouse-server/server-test.xml
 /usr/bin/clickhouse-test
+/usr/bin/clickhouse-test-server
 /usr/bin/clickhouse-performance-test
 # folder
 /usr/share/clickhouse-test
