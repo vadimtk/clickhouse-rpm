@@ -111,7 +111,7 @@ function publish_packagecloud_files_list()
 			publish_packagecloud_file $PACKAGECLOUD_ID $PACKAGECLOUD_PATH $DISTRO_VERSION_ID $FILE
 		done
 	else
-		# Do not have any files specified. This is not particularly correct, may be event an error
+		echo "Do not have any files specified. This is not particularly correct, may be even an error"
 	fi
 }
 
