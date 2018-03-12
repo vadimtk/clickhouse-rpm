@@ -260,7 +260,7 @@ fi
 ##
 
 %files test
-%config(noreplace) /etc/clickhouse-server/client-test.xml
+%config(noreplace) /etc/clickhouse-client/client-test.xml
 %config(noreplace) /etc/clickhouse-server/server-test.xml
 /usr/bin/clickhouse-test
 /usr/bin/clickhouse-test-server
