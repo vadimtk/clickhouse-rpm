@@ -265,6 +265,8 @@ fi
 /usr/bin/clickhouse-test
 /usr/bin/clickhouse-test-server
 /usr/bin/clickhouse-performance-test
+/etc/clickhouse-client/client-test.xml
+/etc/clickhouse-server/server-test.xml
 # folder
 /usr/share/clickhouse-test
 
