@@ -48,28 +48,48 @@ Url: https://clickhouse.yandex/
 ClickHouse is an open-source column-oriented database management
 system that allows generating analytical data reports in real time.
 
+#
+# clickhouse-client
+#
+%package client
+Summary: %{name} client binary
+Requires: %{name}-server = %{version}-%{release}
+
+%description client
+This package contains client binary for ClickHouse DBMS.
+
+#
+# clickhouse-common-static
+#
+%package common-static
+Summary: %{name} common static binaries
+
+%description common-static
+This package contains static binaries for ClickHouse DBMS
+
+#
+# clickhouse-server-common
+#
 %package server-common
 Summary: Common configuration files for %{name}
 
 %description server-common
 This package contains common configuration files for ClickHouse DBMS.
 
+#
+# clickhouse-server
+#
 %package server
-Summary: %{name} server binary
+Summary: Server files for %{name}
+Requires: %{name}-common-static = %{version}-%{release}
 Requires: %{name}-server-common = %{version}-%{release}
 
 %description server
-This package contains server binaries for ClickHouse DBMS.
+This package contains server files for ClickHouse DBMS.
 
-%package client
-Summary: %{name} client binary
-Requires: %{name}-server = %{version}-%{release}
-# compressor is now part of client package
-Obsoletes: %{name}-compressor
-
-%description client
-This package contains client binary for ClickHouse DBMS.
-
+#
+# clickhouse-test
+#
 %package test
 Summary: %{name} test suite
 Requires: %{name}-server = %{version}-%{release}
@@ -159,17 +179,16 @@ cp %{_builddir}/%{buildsubdir}/dbms/src/Server/users.xml       %{buildroot}/etc/
 rm -rf %{buildroot}
 
 ##
-## client package
+## clickhouse-client package
 ##
 
 %files client
-%config(noreplace) /etc/clickhouse-client/config.xml
 /usr/bin/clickhouse-client
 /usr/bin/clickhouse-local
 /usr/bin/clickhouse-compressor
 /usr/bin/clickhouse-benchmark
+%config(noreplace) /etc/clickhouse-client/config.xml
 /usr/bin/clickhouse-extract-from-config
-/usr/bin/clickhouse-format
 
 %post client
 # include/source spec functions
@@ -178,28 +197,45 @@ rm -rf %{buildroot}
 create_system_user $CLICKHOUSE_USER $CLICKHOUSE_GROUP $CLICKHOUSE_DATADIR
 
 mkdir -p /etc/clickhouse-client/conf.d
-chown -R ${CLICKHOUSE_USER}:${CLICKHOUSE_GROUP} /etc/clickhouse-client
 
-mkdir -p /etc/compressor/conf.d
-chown -R ${CLICKHOUSE_USER}:${CLICKHOUSE_GROUP} /etc/compressor
+# user created by clickhouse-server package
+chown -R ${CLICKHOUSE_USER}:${CLICKHOUSE_GROUP} /etc/clickhouse-client || true
+
+##
+## clickhouse-common-static package
+##
+
+%files common-static
+/usr/bin/clickhouse
+%config(noreplace) /etc/security/limits.d/clickhouse.conf
+# folder
+/usr/share/clickhouse
+
+##
+## server-common package
+##
+
+%files server-common
+%config(noreplace) /etc/clickhouse-server/config.xml
+%config(noreplace) /etc/clickhouse-server/users.xml
 
 ##
 ## server package
 ##
 
 %files server
-%config(noreplace) /etc/security/limits.d/clickhouse.conf
-/etc/cron.d/clickhouse-server
-/etc/init.d/clickhouse-server
-# TODO
-#/etc/systemd/system/clickhouse-server.service
-/usr/bin/clickhouse
 /usr/bin/clickhouse-server
 /usr/bin/clickhouse-clang
 /usr/bin/clickhouse-lld
 /usr/bin/clickhouse-copier
+/usr/bin/clickhouse-report
+# TODO
+#/etc/systemd/system/clickhouse-server.service
+/etc/init.d/clickhouse-server
+/etc/cron.d/clickhouse-server
 # folder
 /usr/share/clickhouse
+%config(noreplace) /etc/security/limits.d/clickhouse.conf
 
 %post server
 if [ $1 = 1 ]; then
@@ -247,26 +283,19 @@ if [ $1 -ge 1 ]; then
 	/sbin/service clickhouse-server restart >/dev/null 2>&1
 fi
 
-##
-## server-common package
-##
-
-%files server-common
-%config(noreplace) /etc/clickhouse-server/config.xml
-%config(noreplace) /etc/clickhouse-server/users.xml
 
 ##
 ## test package
 ##
 
 %files test
-%config(noreplace) /etc/clickhouse-client/client-test.xml
-%config(noreplace) /etc/clickhouse-server/server-test.xml
 /usr/bin/clickhouse-test
 /usr/bin/clickhouse-test-server
 /usr/bin/clickhouse-performance-test
 # folder
 /usr/share/clickhouse-test
+%config(noreplace) /etc/clickhouse-client/client-test.xml
+%config(noreplace) /etc/clickhouse-server/server-test.xml
 
 ##
 ##
