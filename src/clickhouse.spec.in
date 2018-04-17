@@ -236,6 +236,8 @@ chown -R ${CLICKHOUSE_USER}:${CLICKHOUSE_GROUP} /etc/clickhouse-client || true
 # folder
 /usr/share/clickhouse
 %config(noreplace) /etc/security/limits.d/clickhouse.conf
+# append file that seems to be obsoleted
+/usr/bin/clickhouse-format
 
 %post server
 if [ $1 = 1 ]; then
