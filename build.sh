@@ -30,11 +30,11 @@
 # limitations under the License.
 
 # Git version of ClickHouse that we package
-CH_VERSION="${CH_VERSION:-1.1.54380}"
+CH_VERSION="${CH_VERSION:-1.1.54382}"
 
 # Git tag marker (stable/testing)
-CH_TAG="${CH_TAG:-stable}"
-#CH_TAG="${CH_TAG:-testing}"
+#CH_TAG="${CH_TAG:-stable}"
+CH_TAG="${CH_TAG:-testing}"
 
 # What sources are we going to compile - either download ready release file OR use 'git clone'
 #USE_SOURCES_FROM="releasefile"
