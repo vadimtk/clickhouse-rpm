@@ -28,3 +28,5 @@ Usage:
 
 Just run `./build.sh all`
 
+In case you'd like to just get ready RPMs look : [into this repo](https://packagecloud.io/Altinity/clickhouse)
+
