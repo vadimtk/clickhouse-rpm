@@ -1,46 +1,30 @@
 # clickhouse-rpm
-ClickHouse DBMS build script for RHEL based distributions
+Build ClickHouse RPMs
 
-Run build_packages.sh on any RHEL 6 or RHEL 7 based distribution and it shall produce ClickHouse source and binary RPM packages for your system.
+Run `build.sh` on any RHEL 6 or RHEL 7 based distribution and get ClickHouse source and binary RPM packages as an output.
 
 ```bash
-curl -s https://packagecloud.io/install/repositories/altinity/clickhouse/script.rpm.sh | sudo bash
-sudo yum install 'openssl-altinity-*'
-sudo yum install MariaDB-devel.x86_64
-yum --downloaddir=. --downloadonly MariaDB-devel
-sudo rpm -ihv --force MariaDB-common-10.2.10-1.el7.centos.x86_64.rpm MariaDB-devel-10.2.10-1.el7.centos.x86_64.rpm
+./build.sh 
+
+Usage:
+./build.sh all          - most popular point of entry - the same as idep_all
+
+./build.sh idep_all     - install dependencies from RPMs, download CH sources and build RPMs
+./build.sh bdep_all     - build dependencies from sources, download CH sources and build RPMs !!! YOU MAY NEED TO UNDERSTAND INTERNALS !!!
+
+./build.sh install_deps - just install dependencies (do not download sources, do not build RPMs)
+./build.sh build_deps   - just build dependencies (do not download sources, do not build RPMs)
+./build.sh src          - just download sources
+./build.sh spec         - just create SPEC file (do not download sources, do not build RPMs)
+./build.sh packages     - download sources, create SPEC file and build RPMs (do not install dependencies)
+./build.sh rpms         - just build RPMs (do not download sources, do not create SPEC file, do not install dependencies)
+
+./build.sh publish packagecloud <packagecloud USER ID> - publish packages on packagecloud as USER
+./build.sh delete packagecloud <packagecloud USER ID>  - delete packages on packagecloud as USER
+
+./build.sh publish ssh  - publish packages via SSH
 
 ```
-```bash
-cmake3 .. -DCMAKE_CXX_COMPILER=/opt/rh/devtoolset-6/root/usr/bin/g++ -DCMAKE_C_COMPILER=/opt/rh/devtoolset-6/root/usr/bin/gcc -DOPENSSL_ROOT_DIR=/opt/openssl-1.1.0f
-```
 
-# MariaDB libmysqlclient
-sources: https://downloads.mariadb.org/mariadb/10.2.10/
-build instaructions: https://mariadb.com/kb/en/library/source-building-mariadb-on-centos/
-```bash
-mkdir build
-cd build
-cmake3 .. -DBUILD_CONFIG=mysql_release -DRPM=centos7 -DCMAKE_CXX_COMPILER=/opt/rh/devtoolset-6/root/usr/bin/g++ -DCMAKE_C_COMPILER=/opt/rh/devtoolset-6/root/usr/bin/gcc -DOPENSSL_ROOT_DIR=/opt/openssl-1.1.0f
-make package
-```
-```bash
-MariaDB-common* MariaDB-compat* MariaDB-devel* MariaDB-shared*
+Just run `./build.sh all`
 
-Installed Packages
-MariaDB-common.x86_64                                                                                           10.2.10-1.el7.centos                                                                                           installed
-MariaDB-devel.x86_64                                                                                            10.2.10-1.el7.centos                                                                                           installed
-MariaDB-shared.x86_64                                                                                           10.2.10-1.el7.centos                                                                                           installed
-[user@localhost clickhouse-rpm]$ 
-Installed Packages
-openssl.x86_64                                                                                                  1:1.0.2k-8.el7                                                                                      @anaconda           
-openssl-altinity.x86_64                                                                                         1:1.1.0f-7.el7.centos                                                                               @altinity_clickhouse
-openssl-altinity-debuginfo.x86_64                                                                               1:1.1.0f-7.el7.centos                                                                               @altinity_clickhouse
-openssl-altinity-devel.x86_64                                                                                   1:1.1.0f-7.el7.centos                                                                               @altinity_clickhouse
-openssl-altinity-libs.x86_64                                                                                    1:1.1.0f-7.el7.centos                                                                               @altinity_clickhouse
-openssl-altinity-perl.x86_64                                                                                    1:1.1.0f-7.el7.centos                                                                               @altinity_clickhouse
-openssl-altinity-static.x86_64                                                                                  1:1.1.0f-7.el7.centos                                                                               @altinity_clickhouse
-openssl-libs.x86_64                                                                                             1:1.0.2k-8.el7       
-
-All packages are available here: https://packagecloud.io/altinity/clickhouse
-```
