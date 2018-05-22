@@ -9,10 +9,8 @@
 #  - build user needs to have sudo priviledges, preferrably with NOPASSWD
 #
 # Tested on:
-#  - CentOS 6: 6.8, 6.9
-#  - CentOS 7: 7.2, 7.3, 7.4
-#  - RHEL 7: 7.4
-#  - Fedora: 25, 26
+#  - CentOS 6: 6.9
+#  - CentOS 7: 7.4, 7.5
 #
 # Copyright (C) 2016 Red Soft LLC
 # Copyright (C) 2017 Altinity Ltd
