@@ -33,7 +33,7 @@ function os_unsupported()
 ##
 function os_yum_based()
 {
-	[ "$OS" == "rhel" ] || [ "$OS" == "centos" ] || [ "$OS" == "fedora" ]
+	[ "$OS" == "rhel" ] || [ "$OS" == "centos" ] || [ "$OS" == "fedora" ] || [ "$OS" == "ol" ]
 }
 
 ##
@@ -42,6 +42,14 @@ function os_yum_based()
 function os_rhel()
 {
 	[ "$OS" == "rhel" ] || [ "$OS" == "redhatenterpriseserver" ]
+}
+
+##
+## is OS Red Hat Enterprise Linux?
+##
+function os_ol()
+{
+	[ "$OS" == "ol" ] 
 }
 
 ##

@@ -157,6 +157,18 @@ function install_mysql_libs()
 {
 	banner "Install MySQL client library"
 
+	if os_ol; then
+	MARIADB_REPO_URL="http://yum.mariadb.org/10.2/rhel${DISTR_MAJOR}-amd64"
+	sudo bash -c "cat << EOF > /etc/yum.repos.d/mariadb.repo
+[mariadb]
+name=MariaDB
+baseurl=${MARIADB_REPO_URL}
+gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
+gpgcheck=1
+EOF"
+
+	sudo yum install -y MariaDB-devel MariaDB-shared
+	else
 	# which repo should be used
 	# http://yum.mariadb.org/10.2/fedora26-amd64
 	# http://yum.mariadb.org/10.2/centos6-amd64
@@ -173,6 +185,7 @@ gpgcheck=1
 EOF"
 
 	sudo yum install -y MariaDB-devel MariaDB-shared
+	fi
 }
 
 ##
@@ -189,6 +202,10 @@ function install_build_process_dependencies()
 		sudo yum install -y devtoolset-7
 
 		sudo yum install -y epel-release
+		sudo yum install -y cmake3
+	elif os_ol; then
+		sudo yum install -y scl-utils
+		sudo yum install -y devtoolset-7
 		sudo yum install -y cmake3
 	else
 		# fedora
@@ -459,7 +476,7 @@ function build_RPMs()
 %_smp_mflags  -j'"$THREADS" > ~/.rpmmacros
 
 	banner "Setup path to compilers"
-	if os_centos; then
+	if os_centos || os_ol; then
 		export CMAKE=cmake3
 		export CC=/opt/rh/devtoolset-7/root/usr/bin/gcc
 		export CXX=/opt/rh/devtoolset-7/root/usr/bin/g++
