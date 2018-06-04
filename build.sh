@@ -86,6 +86,7 @@ export PATH=${PATH/"/usr/local/bin:"/}:/usr/local/bin
 . ./src/publish_ssh.lib.sh
 
 CMAKE_OPTIONS=""
+MAKE_OPTIONS=""
 
 ##
 ##
@@ -218,7 +219,7 @@ function install_workarounds()
 {
 	banner "Install workarounds"
 
-	# Now all workarounds are included into CMAKE_OPTIONS
+	# Now all workarounds are included into CMAKE_OPTIONS and MAKE_OPTIONS
 }
 
 ##
@@ -435,12 +436,14 @@ function build_spec_file()
 	banner "Build .spec file"
 
 	CMAKE_OPTIONS="${CMAKE_OPTIONS} -DHAVE_THREE_PARAM_SCHED_SETAFFINITY=1 -DOPENSSL_SSL_LIBRARY=/usr/lib64/libssl.so -DOPENSSL_CRYPTO_LIBRARY=/usr/lib64/libcrypto.so -DOPENSSL_INCLUDE_DIR=/usr/include/openssl"
+	MAKE_OPTIONS=""
 
 	# Create spec file from template
 	cat "$SRC_DIR/clickhouse.spec.in" | sed \
 		-e "s|@CH_VERSION@|$CH_VERSION|" \
 		-e "s|@CH_TAG@|$CH_TAG|" \
 		-e "s|@CMAKE_OPTIONS@|$CMAKE_OPTIONS|" \
+		-e "s|@MAKE_OPTIONS@|$MAKE_OPTIONS|" \
 		-e "/@CLICKHOUSE_SPEC_FUNCS_SH@/ { 
 r $SRC_DIR/clickhouse.spec.funcs.sh
 d }" \

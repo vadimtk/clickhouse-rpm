@@ -136,7 +136,7 @@ rm -rf build
 mkdir build
 cd build
 $CMAKE .. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE:STRING=Release @CMAKE_OPTIONS@
-make %{?_smp_mflags}
+make %{?_smp_mflags} @MAKE_OPTIONS@
 cd ..
 
 ##
