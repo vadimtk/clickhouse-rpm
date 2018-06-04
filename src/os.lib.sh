@@ -45,7 +45,7 @@ function os_rhel()
 }
 
 ##
-## is OS Red Hat Enterprise Linux?
+## is OS Oracle Linux?
 ##
 function os_ol()
 {
