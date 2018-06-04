@@ -436,7 +436,7 @@ function build_spec_file()
 	banner "Build .spec file"
 
 	CMAKE_OPTIONS="${CMAKE_OPTIONS} -DHAVE_THREE_PARAM_SCHED_SETAFFINITY=1 -DOPENSSL_SSL_LIBRARY=/usr/lib64/libssl.so -DOPENSSL_CRYPTO_LIBRARY=/usr/lib64/libcrypto.so -DOPENSSL_INCLUDE_DIR=/usr/include/openssl"
-	MAKE_OPTIONS=""
+	MAKE_OPTIONS="${MAKE_OPTIONS}"
 
 	# Create spec file from template
 	cat "$SRC_DIR/clickhouse.spec.in" | sed \
