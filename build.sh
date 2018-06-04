@@ -529,10 +529,13 @@ function build_packages()
 ##
 function usage()
 {
-	# dispable commands print
+	# disable commands print
 	set +x
 
 	echo "Usage:"
+	echo
+	echo "./build.sh version      - display default version to build"
+	echo
 	echo "./build.sh all          - most popular point of entry - the same as idep_all"
 	echo
 	echo "./build.sh idep_all     - install dependencies from RPMs, download CH sources and build RPMs"
@@ -573,7 +576,10 @@ fi
 
 COMMAND="$1"
 
-if [ "$COMMAND" == "all" ]; then
+if [ "$COMMAND" == "version" ]; then
+	echo "v$CH_VERSION-$CH_TAG"
+
+elif [ "$COMMAND" == "all" ]; then
 	ensure_os_rpm_based
 	set_print_commands
 	install_dependencies
