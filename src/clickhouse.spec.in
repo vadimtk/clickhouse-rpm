@@ -22,7 +22,7 @@
 # rpm --showrc will show you all of the macros
 
 # Macros available:
-# @CH_VERSION@="1.1.54289"
+# @CH_VERSION@="18.10.3"
 # @CH_TAG@="stable"
 
 # CentOS 7 makes dist as ".el7.centos", we'd like to have dist=".el7", in order to use packages for RHEL as well, without renaming
@@ -102,7 +102,7 @@ This package contains test suite for ClickHouse DBMS
 ##
 
 %prep
-# @CH_VERSION@="1.1.54289"
+# @CH_VERSION@="18.10.3"
 # @CH_TAG@="stable"
 
 # Ensure source code is in BUILD/ClickHouse-%{version}-@CH_TAG@ folder
