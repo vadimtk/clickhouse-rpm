@@ -535,24 +535,28 @@ function usage()
 
 	echo "Usage:"
 	echo
-	echo "./build.sh version      - display default version to build"
+	echo "./build.sh version        - display default version to build"
 	echo
-	echo "./build.sh all          - most popular point of entry - the same as idep_all"
+	echo "./build.sh all            - most popular point of entry - the same as idep_all"
 	echo
-	echo "./build.sh idep_all     - install dependencies from RPMs, download CH sources and build RPMs"
-	echo "./build.sh bdep_all     - build dependencies from sources, download CH sources and build RPMs !!! YOU MAY NEED TO UNDERSTAND INTERNALS !!!"
+	echo "./build.sh idep_all       - install dependencies from RPMs, download CH sources and build RPMs"
+	echo "./build.sh bdep_all       - build dependencies from sources, download CH sources and build RPMs"
+	echo "                            !!! YOU MAY NEED TO UNDERSTAND INTERNALS !!!"
 	echo
-	echo "./build.sh install_deps - just install dependencies (do not download sources, do not build RPMs)"
-	echo "./build.sh build_deps   - just build dependencies (do not download sources, do not build RPMs)"
-	echo "./build.sh src          - just download sources"
-	echo "./build.sh spec         - just create SPEC file (do not download sources, do not build RPMs)"
-	echo "./build.sh packages     - download sources, create SPEC file and build RPMs (do not install dependencies)"
-	echo "./build.sh rpms         - just build RPMs (do not download sources, do not create SPEC file, do not install dependencies)"
+	echo "./build.sh install_deps   - just install dependencies (do not download sources, do not build RPMs)"
+	echo "./build.sh build_deps     - just build dependencies (do not download sources, do not build RPMs)"
+	echo "./build.sh src            - just download sources"
+	echo "./build.sh spec           - just create SPEC file (do not download sources, do not build RPMs)"
+	echo "./build.sh packages       - download sources, create SPEC file and build RPMs (do not install dependencies)"
+	echo "./build.sh rpms           - just build RPMs from .zip sourcesi"
+	echo "                            (do not download sources, do not create SPEC file, do not install dependencies)"
+	echo "MYSRC=yes ./build.sh rpms - just build RPMs from unpacked sources - most likely you have modified them"
+	echo "                            (do not download sources, do not create SPEC file, do not install dependencies)"
 	echo
 	echo "./build.sh publish packagecloud <packagecloud USER ID> - publish packages on packagecloud as USER"
 	echo "./build.sh delete packagecloud <packagecloud USER ID>  - delete packages on packagecloud as USER"
 	echo
-	echo "./build.sh publish ssh  - publish packages via SSH"
+	echo "./build.sh publish ssh - publish packages via SSH"
 	
 	exit 0
 }
