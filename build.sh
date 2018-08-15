@@ -462,9 +462,6 @@ function build_RPMs()
 	banner "Ensure build dirs are in place"
 	mkdirs
 
-	echo "Clean BUILD dir"
-	rm -rf "$BUILD_DIR"/ClickHouse*
-
 	banner "Setup RPM Macros"
 	echo '%_topdir '"$RPMBUILD_DIR"'
 %_tmppath '"$TMP_DIR"'

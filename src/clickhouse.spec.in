@@ -108,19 +108,22 @@ This package contains test suite for ClickHouse DBMS
 # Ensure source code is in BUILD/ClickHouse-%{version}-@CH_TAG@ folder
 # Prepare source code for being built
 
-# Prepare sources from .zip release source file
-# 1. Delete BUILD/ClickHouse-%{version}-@CH_TAG@ folder
-# 2. copy .zip file from SOURSES to BUILD, unpack .zip file. Important .zip file has to have ClickHouse-%{version}-@CH_TAG@ folder inside
-# 3. cd into BUILD/ClickHouse-%{version}-@CH_TAG@, which is expected to be in .zip file
+if [ "${MYSRC}" == "yes" ]; then
+	# Prepare sources 'as is', for example, from 'git clone'
+	# Sources are already expected to be located in BUILD/ClickHouse-%{version}-@CH_TAG@
+	# and would be used 'as is'. This is the way to go in case you need to modify sources
+	# 1. Do not delete BUILD/ClickHouse-%{version}-@CH_TAG@ folder
+	# 2. Do not copy sources .zip from SOURCES, do not unpack .zip archive into BUILD/, 
+	# 3. just cd into BUILD/ClickHouse-%{version}-@CH_TAG@ - it has to be here
+%setup -D -T -n ClickHouse-%{version}-@CH_TAG@
+else
+	# Prepare sources from .zip release source file
+	# 1. Delete BUILD/ClickHouse-%{version}-@CH_TAG@ folder
+	# 2. copy .zip file from SOURSES to BUILD, unpack .zip file. Important .zip file has to have ClickHouse-%{version}-@CH_TAG@ folder inside
+	# 3. cd into BUILD/ClickHouse-%{version}-@CH_TAG@, which is expected to be in .zip file
 %setup -q -n ClickHouse-%{version}-@CH_TAG@
+fi
 
-# Prepare sources 'as is', for example, from 'git clone'
-# Sources are already expected to be located in BUILD/ClickHouse-%{version}-@CH_TAG@
-# and would be used 'as is'. This is the way to go in case you need to modify sources
-# 1. Do not delete ClickHouse-%{version}-@CH_TAG@ folder
-# 2. Do not copy sources from SOURCES, do not unpack .zip archives, 
-# 3. just cd into BUILD/ClickHouse-%{version}-@CH_TAG@
-#%setup -D -T -n ClickHouse-%{version}-@CH_TAG@
 
 ##
 ## build stage
