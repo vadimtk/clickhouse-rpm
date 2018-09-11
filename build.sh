@@ -76,6 +76,8 @@ export THREADS=$(grep -c ^processor /proc/cpuinfo)
 # Build most libraries using default GCC
 export PATH=${PATH/"/usr/local/bin:"/}:/usr/local/bin
 
+# export LD_LIBRARY_PATH=/usr/lib:/usr/local/lib:/opt/rh/devtoolset-7/root/usr/lib64
+
 # Source libraries
 . ./src/os.lib.sh
 . ./src/publish_packagecloud.lib.sh
