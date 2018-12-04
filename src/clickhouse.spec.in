@@ -119,7 +119,7 @@ if [ "${REBUILD_RPMS}" == "yes" ]; then
 
 	# Jump into rpmbuild/BUILD/ch_sources_dir and fix flags
 	cd ClickHouse-%{version}-@CH_TAG@
-	/usr/bin/chmod -Rf a+rX,u+w,g-w,o-w .
+	chmod -Rf a+rX,u+w,g-w,o-w .
 
 else
 	echo "Build RPMs from SOURCES/.zip file"
@@ -142,7 +142,7 @@ else
 
 	# Jump into rpmbuild/BUILD/ch_sources_dir and fix flags
 	cd ClickHouse-%{version}-@CH_TAG@
-	/usr/bin/chmod -Rf a+rX,u+w,g-w,o-w .
+	chmod -Rf a+rX,u+w,g-w,o-w .
 fi
 
 
