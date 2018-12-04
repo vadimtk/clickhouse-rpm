@@ -103,6 +103,7 @@ function publish_packagecloud_files_list()
 	publish_packagecloud_distro_version_id
 	DISTRO_VERSION_ID=$?
 
+	set +x
 	echo "Publishing as $PACKAGECLOUD_ID to '$PACKAGECLOUD_PATH' for distro $DISTRO_VERSION_ID"
 
 	if [ -n "$2" ]; then
@@ -132,7 +133,7 @@ function publish_packagecloud()
 		publish_packagecloud_files_list $PACKAGECLOUD_ID ${@:2}
 	else
 		# Do not have any files specified. Publish RPMs from RPMS path
-		publish_packagecloud_files_list $PACKAGECLOUD_ID $(ls "$RPMBUILD_DIR"/RPMS/x86_64/clickhouse*.rpm)
+		publish_packagecloud_files_list $PACKAGECLOUD_ID $(ls "$RPMS_DIR"/clickhouse*.rpm)
 	fi
 }
 
