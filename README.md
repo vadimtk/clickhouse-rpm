@@ -6,7 +6,7 @@ In case you'd like to just get ready RPMs look into [this repo](https://packagec
 
 # Build RPMs
 
-Run `build.sh` on any RHEL 6 or RHEL 7 based distribution and get ClickHouse source and binary RPM packages as an output.
+Run `builder` on any RHEL 6 or RHEL 7 based distribution and get ClickHouse source and binary RPM packages as an output.
 
 ```bash
 Usage:
