@@ -52,7 +52,7 @@ MY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null && pwd)"
 # Base dir where ClickHouse sources are expected to be located
 # This is crucial when we are building from sources and 
 # are standing inside sources tree
-CH_SRC_ROOT_DIR=$(realpath "$MY_DIR"/..)
+CH_SRC_ROOT_DIR=$(readlink -e "$MY_DIR"/..)
 
 # Docker build context root dir
 DOCKER_CONTEXT_ROOT_DIR="$MY_DIR"
