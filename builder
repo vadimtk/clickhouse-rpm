@@ -27,6 +27,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Git repository of Clickhouse
+CH_REPO="${CH_REPO:-https://github.com/yandex/ClickHouse}"
+
 # Git version of ClickHouse that we package
 CH_VERSION="${CH_VERSION:-18.16.1}"
 
@@ -233,7 +236,7 @@ function prepare_sources()
 	# Go older way because older versions of git (CentOS 6.9, for example) do not understand new syntax of branches etc
 	# Clone specified branch with all submodules into $SOURCES_DIR/ClickHouse-$CH_VERSION-$CH_TAG folder
 	echo "Clone ClickHouse repo"
-	git clone "https://github.com/yandex/ClickHouse" "ClickHouse-${CH_VERSION}-${CH_TAG}"
+	git clone "${CH_REPO}" "ClickHouse-${CH_VERSION}-${CH_TAG}"
 
 	cd "ClickHouse-${CH_VERSION}-${CH_TAG}"
 
