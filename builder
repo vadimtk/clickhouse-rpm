@@ -602,6 +602,7 @@ function usage()
 
 	# This should probably be moved to --help someday
 	echo "Tests launched in Docker honor CH_TEST_NAMES env var which is a regexp to choose what tests to run"
+	echo "CH_TEST_NAMES='^(?!00700_decimal_math).*$' in case you'd like to skip problematic decimal math test"
 	echo "It is actulally run as clickhouse-test "\$CH_TEST_NAMES" so check for more info with clickhouse-test"
 	echo "This env var is recognized by: './builder all --test' and './builder test --docker'"
 }
