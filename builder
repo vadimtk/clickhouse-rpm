@@ -599,6 +599,11 @@ function usage()
 	echo
 	echo "./builder src --download"
 	echo "		just download sources"
+
+	# This should probably be moved to --help someday
+	echo "Tests launched in Docker honor CH_TEST_NAMES env var which is a regexp to choose what tests to run"
+	echo "It is actulally run as clickhouse-test "\$CH_TEST_NAMES" so check for more info with clickhouse-test"
+	echo "This env var is recognized by: './builder all --test' and './builder test --docker'"
 }
 
 if [ -z "$1" ]; then
