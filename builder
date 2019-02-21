@@ -31,7 +31,7 @@
 CH_REPO="${CH_REPO:-https://github.com/yandex/ClickHouse}"
 
 # Git version of ClickHouse that we package
-CH_VERSION="${CH_VERSION:-19.3.4}"
+CH_VERSION="${CH_VERSION:-19.1.9}"
 
 # Git tag marker (stable/testing)
 CH_TAG="${CH_TAG:-stable}"
