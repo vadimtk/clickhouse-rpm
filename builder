@@ -69,10 +69,8 @@ RPMBUILD_ROOT_DIR="$CWD_DIR/rpmbuild"
 # Detect number of threads to run 'make' command
 export THREADS=$(grep -c ^processor /proc/cpuinfo)
 
-# Build most libraries using default GCC
-#export PATH=${PATH/"/usr/local/bin:"/}:/usr/local/bin
-
-# export LD_LIBRARY_PATH=/usr/lib:/usr/local/lib:/opt/rh/devtoolset-7/root/usr/lib64
+# Should ninja-build be used
+export USE_NINJA_BUILD="true"
 
 # Source libraries
 . "${SRC_DIR}"/os.lib.sh
@@ -144,6 +142,10 @@ function install_build_process_dependencies()
 	if os_centos; then
 		sudo yum install -y epel-release
 		sudo yum install -y cmake3
+		if [ ! -z $USE_NINJA_BUILD ]; then
+			# use ninja-build
+			sudo yum install -y ninja-build
+		fi
 
 		sudo yum install -y centos-release-scl
 		sudo yum install -y devtoolset-7

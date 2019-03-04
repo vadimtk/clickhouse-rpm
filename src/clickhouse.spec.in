@@ -162,8 +162,17 @@ mkdir -p build
 cd build
 ls | grep -v 'rpmbuild' | xargs rm -rf
 
-$CMAKE .. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE:STRING=Release @CMAKE_OPTIONS@
-make %{?_smp_mflags} @MAKE_OPTIONS@
+
+if [ ! -z $USE_NINJA_BUILD ]; then
+	# use ninja-build
+	$CMAKE .. -G Ninja -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE:STRING=Release @CMAKE_OPTIONS@
+	ninja-build @MAKE_OPTIONS@
+else
+	# use original cmake
+	$CMAKE ..          -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE:STRING=Release @CMAKE_OPTIONS@
+	make %{?_smp_mflags} @MAKE_OPTIONS@
+fi
+
 MAKE_EXIT_CODE=$?
 
 echo "make reported exit code ${MAKE_EXIT_CODE}"
