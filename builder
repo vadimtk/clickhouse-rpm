@@ -768,6 +768,11 @@ COMMAND=${UNDASHED_ARGS[0]}
 
 export REBUILD_RPMS="no"
 set_rpmbuild_dirs $RPMBUILD_ROOT_DIR
+os_detect
+if os_centos_6; then
+	# ninja is not used on CentOS6
+	export USE_NINJA_BUILD=""
+fi
 
 case $COMMAND in
 
