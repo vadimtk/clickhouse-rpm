@@ -70,7 +70,8 @@ RPMBUILD_ROOT_DIR="$CWD_DIR/rpmbuild"
 export THREADS=$(grep -c ^processor /proc/cpuinfo)
 
 # Should ninja-build be used
-export USE_NINJA_BUILD="true"
+#export USE_NINJA_BUILD="true"
+export USE_NINJA_BUILD=""
 
 # Source libraries
 . "${SRC_DIR}"/os.lib.sh
