@@ -228,13 +228,23 @@ function install_clickhouse_test_deps()
 ##
 function prepare_sources()
 {
+	download_sources
+	zip_sources
+}
+
+##
+## Download sources into $RPMBUILD_ROOT_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG folder
+##
+function download_sources()
+{
 	banner "Ensure SOURCES dir is in place"
 	mkdirs
 
-	echo "Clean sources dir"
+	echo "Clean sources dir as rm -rf '$SOURCES_DIR/ClickHouse*'"
 	rm -rf "$SOURCES_DIR"/ClickHouse*
 
-	echo "Cloning from github v${CH_VERSION}-${CH_TAG} into $SOURCES_DIR/ClickHouse-${CH_VERSION}-${CH_TAG}"
+	echo "Download sources"
+	echo "Clone from github v${CH_VERSION}-${CH_TAG} into $SOURCES_DIR/ClickHouse-${CH_VERSION}-${CH_TAG}"
 
 	cd "$SOURCES_DIR"
 
@@ -251,6 +261,14 @@ function prepare_sources()
 	echo "Update submodules"
 	git submodule update --init --recursive
 
+	echo "Sources downloaded"
+}
+
+##
+## Move sources into .zip $RPMBUILD_ROOT_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG.zip
+##
+function zip_sources()
+{
 	cd "$SOURCES_DIR"
 
 	echo "Move files into .zip with minimal compression"
@@ -361,20 +379,21 @@ function build_packages()
 {
 	banner "Ensure build dirs are in place"
 	mkdirs
-
-	echo "Clean up after previous run"
-	rm -f "$RPMS_DIR"/clickhouse*
-	rm -f "$SRPMS_DIR"/clickhouse*
-	rm -f "$SPECS_DIR"/clickhouse.spec
-
-	banner "Create RPM packages"
 	
 	# Prepare $SOURCES_DIR/ClickHouse-$CH_VERSION-$CH_TAG.zip file
 	prepare_sources
 
+	echo "Clean up spec from previous run"
+	rm -f "$SPECS_DIR"/clickhouse.spec
+
 	# Build $SPECS_DIR/clickhouse.spec file
 	build_spec_file
  
+	echo "Clean up .rpm and .srpm from previous run"
+	rm -f "$RPMS_DIR"/clickhouse*
+	rm -f "$SRPMS_DIR"/clickhouse*
+
+	banner "Build RPM packages"
 	# Compile sources and build RPMS
 	build_RPMs
 }
@@ -580,11 +599,15 @@ function usage()
 	echo "./builder build --rpms [--test]"
 	echo "		download sources, build SPEC file, build RPMs"
 	echo "		do not install dependencies"
-	echo "./builder build --rpms --from-archive [--test]"
-	echo "		just build RPMs from .zip sources"
-	echo "		(do not download sources, do not create SPEC file, do not install dependencies)"
+	echo "./builder build --download-sources"
+	echo "		just download sources into \$RPMBUILD_ROOT_DIR/SOURCES/ClickHouse-\$CH_VERSION-\$CH_TAG folder"
+	echo "		(do not create SPEC file, do not install dependencies, do not build)"
 	echo "./builder build --rpms --from-unpacked-archive [--test]"
 	echo "		just build RPMs from unpacked sources - most likely you have modified them"
+	echo "		sources are in \$RPMBUILD_ROOT_DIR/SOURCES/ClickHouse-\$CH_VERSION-\$CH_TAG folder"
+	echo "		(do not download sources, do not create SPEC file, do not install dependencies)"
+	echo "./builder build --rpms --from-archive [--test]"
+	echo "		just build RPMs from \$RPMBUILD_ROOT_DIR/SOURCES/ClickHouse-\$CH_VERSION-\$CH_TAG folder.zip sources"
 	echo "		(do not download sources, do not create SPEC file, do not install dependencies)"
 	echo "./builder build --rpms --from-sources [--test]"
 	echo "		build from source codes"
@@ -635,8 +658,9 @@ FLAG_TEST_DEPS=''
 FLAG_DEPS=''
 FLAG_RPMS=''
 FLAG_SPEC=''
-FLAG_FROM_ARCHIVE=''
+FLAG_DOWNLOAD_SOURCES=''
 FLAG_FROM_UNPACKED_ARCHIVE=''
+FLAG_FROM_ARCHIVE=''
 FLAG_FROM_SOURCES=''
 FLAG_DOCKER=''
 FLAG_LOCAL=''
@@ -653,8 +677,9 @@ test-deps,\
 deps,\
 rpms,\
 spec,\
-from-archive,\
+download-sources,\
 from-unpacked-archive,\
+from-archive,\
 from-sources,\
 docker,\
 local,\
@@ -712,11 +737,14 @@ while true; do
 	--spec)
 		FLAG_SPEC='yes'
 		;;
-	--from-archive)
-		FLAG_FROM_ARCHIVE='yes'
+	--download-sources)
+		FLAG_DOWNLOAD_SOURCES='yes'
 		;;
 	--from-unpacked-archive)
 		FLAG_FROM_UNPACKED_ARCHIVE='yes'
+		;;
+	--from-archive)
+		FLAG_FROM_ARCHIVE='yes'
 		;;
 	--from-sources)
 		FLAG_FROM_SOURCES='yes'
@@ -871,6 +899,10 @@ build)
 
 		set_print_commands
 		build_spec_file
+
+	elif [ ! -z "$FLAG_DOWNLOAD_SOURCES" ]; then
+		banner "build --download"
+		download_sources
 
 	elif [ ! -z "$FLAG_RPMS" ]; then
 		# build --rpms
