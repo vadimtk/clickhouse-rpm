@@ -265,14 +265,18 @@ function download_sources()
 }
 
 ##
-## Move sources into .zip $RPMBUILD_ROOT_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG.zip
+## Copy or move (depend on options) sources into .zip 
+## $RPMBUILD_ROOT_DIR/SOURCES/ClickHouse-$CH_VERSION-$CH_TAG.zip
 ##
 function zip_sources()
 {
 	cd "$SOURCES_DIR"
 
-	echo "Move files into .zip with minimal compression"
-	zip -r0mq "ClickHouse-${CH_VERSION}-${CH_TAG}.zip" "ClickHouse-${CH_VERSION}-${CH_TAG}"
+#	echo "Move files into .zip with minimal compression"
+#	zip -r0mq "ClickHouse-${CH_VERSION}-${CH_TAG}.zip" "ClickHouse-${CH_VERSION}-${CH_TAG}"
+
+	echo "Copy files into .zip with minimal compression"
+	zip -r0q "ClickHouse-${CH_VERSION}-${CH_TAG}.zip" "ClickHouse-${CH_VERSION}-${CH_TAG}"
 
 	echo "Ensure .zip file is available"
 	ls -l "ClickHouse-${CH_VERSION}-${CH_TAG}.zip"
@@ -602,7 +606,11 @@ function usage()
 	echo "./builder build --download-sources"
 	echo "		just download sources into \$RPMBUILD_ROOT_DIR/SOURCES/ClickHouse-\$CH_VERSION-\$CH_TAG folder"
 	echo "		(do not create SPEC file, do not install dependencies, do not build)"
-	echo "./builder build --rpms --from-unpacked-archive [--test]"
+	echo "./builder build --rpms --from-sources-in-BUILD-dir [--test]"
+	echo "		just build RPMs from unpacked sources - most likely you have modified them"
+	echo "		sources are in \$RPMBUILD_ROOT_DIR/BUILD/ClickHouse-\$CH_VERSION-\$CH_TAG folder"
+	echo "		(do not download sources, do not create SPEC file, do not install dependencies)"
+	echo "./builder build --rpms --from-sources-in-SOURCES-dir [--test]"
 	echo "		just build RPMs from unpacked sources - most likely you have modified them"
 	echo "		sources are in \$RPMBUILD_ROOT_DIR/SOURCES/ClickHouse-\$CH_VERSION-\$CH_TAG folder"
 	echo "		(do not download sources, do not create SPEC file, do not install dependencies)"
@@ -659,7 +667,8 @@ FLAG_DEPS=''
 FLAG_RPMS=''
 FLAG_SPEC=''
 FLAG_DOWNLOAD_SOURCES=''
-FLAG_FROM_UNPACKED_ARCHIVE=''
+FLAG_FROM_SOURCES_IN_BUILD_DIR=''
+FLAG_FROM_SOURCES_IN_SOURCES_DIR=''
 FLAG_FROM_ARCHIVE=''
 FLAG_FROM_SOURCES=''
 FLAG_DOCKER=''
@@ -678,7 +687,8 @@ deps,\
 rpms,\
 spec,\
 download-sources,\
-from-unpacked-archive,\
+from-sources-in-BUILD-dir,\
+from-sources-in-SOURCES-dir,\
 from-archive,\
 from-sources,\
 docker,\
@@ -740,8 +750,11 @@ while true; do
 	--download-sources)
 		FLAG_DOWNLOAD_SOURCES='yes'
 		;;
-	--from-unpacked-archive)
-		FLAG_FROM_UNPACKED_ARCHIVE='yes'
+	--from-sources-in-BUILD-dir)
+		FLAG_FROM_SOURCES_IN_BUILD_DIR='yes'
+		;;
+	--from-sources-in-SOURCES-dir)
+		FLAG_FROM_SOURCES_IN_SOURCES_DIR='yes'
 		;;
 	--from-archive)
 		FLAG_FROM_ARCHIVE='yes'
@@ -917,7 +930,7 @@ build)
 			export TEST_BINARIES="yes"
 		fi
 
-		if [ -z "$FLAG_FROM_ARCHIVE" ] && [ -z "$FLAG_FROM_UNPACKED_ARCHIVE" ] && [ -z "$FLAG_FROM_SOURCES" ]; then
+		if [ -z "$FLAG_FROM_ARCHIVE" ] && [ -z "$FLAG_FROM_SOURCES_IN_BUILD_DIR" ] && [ -z "$FLAG_FROM_SOURCES_IN_SOURCES_DIR" ] && [ -z "$FLAG_FROM_SOURCES" ]; then
 			banner "build --rpms [--test]"
 
 			ensure_os_rpm_based
@@ -931,12 +944,20 @@ build)
 			set_print_commands
 			build_RPMs
 
-		elif [ ! -z "$FLAG_FROM_UNPACKED_ARCHIVE" ]; then
-			banner "build --rpms --from-unpacked-archive [--test]"
+		elif [ ! -z "$FLAG_FROM_SOURCES_IN_BUILD_DIR" ]; then
+			banner "build --rpms --from-sources-in-BUILD-dir [--test]"
 
 			export REBUILD_RPMS="yes"
 			ensure_os_rpm_based
 			set_print_commands
+			build_RPMs
+
+		elif [ ! -z "$FLAG_FROM_SOURCES_IN_SOURCES_DIR" ]; then
+			banner "build --rpms --from-sources-in-SOURCES-dir [--test]"
+
+			ensure_os_rpm_based
+			set_print_commands
+			zip_sources
 			build_RPMs
 
 		elif [ ! -z "$FLAG_FROM_SOURCES" ]; then
