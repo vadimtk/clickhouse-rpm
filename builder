@@ -600,24 +600,24 @@ function usage()
 	echo "./builder build --spec"
 	echo "		just create SPEC file"
 	echo "		do not download sources, do not build RPMs"
-	echo "./builder build --rpms [--test]"
+	echo "./builder build --rpms [--debuginfo=no] [--test] "
 	echo "		download sources, build SPEC file, build RPMs"
 	echo "		do not install dependencies"
 	echo "./builder build --download-sources"
 	echo "		just download sources into \$RPMBUILD_ROOT_DIR/SOURCES/ClickHouse-\$CH_VERSION-\$CH_TAG folder"
 	echo "		(do not create SPEC file, do not install dependencies, do not build)"
-	echo "./builder build --rpms --from-sources-in-BUILD-dir [--test]"
+	echo "./builder build --rpms --from-sources-in-BUILD-dir [--debuginfo=no] [--test]"
 	echo "		just build RPMs from unpacked sources - most likely you have modified them"
 	echo "		sources are in \$RPMBUILD_ROOT_DIR/BUILD/ClickHouse-\$CH_VERSION-\$CH_TAG folder"
 	echo "		(do not download sources, do not create SPEC file, do not install dependencies)"
-	echo "./builder build --rpms --from-sources-in-SOURCES-dir [--test]"
+	echo "./builder build --rpms --from-sources-in-SOURCES-dir [--debuginfo=no] [--test]"
 	echo "		just build RPMs from unpacked sources - most likely you have modified them"
 	echo "		sources are in \$RPMBUILD_ROOT_DIR/SOURCES/ClickHouse-\$CH_VERSION-\$CH_TAG folder"
 	echo "		(do not download sources, do not create SPEC file, do not install dependencies)"
-	echo "./builder build --rpms --from-archive [--test]"
+	echo "./builder build --rpms --from-archive [--debuginfo=no] [--test]"
 	echo "		just build RPMs from \$RPMBUILD_ROOT_DIR/SOURCES/ClickHouse-\$CH_VERSION-\$CH_TAG folder.zip sources"
 	echo "		(do not download sources, do not create SPEC file, do not install dependencies)"
-	echo "./builder build --rpms --from-sources [--test]"
+	echo "./builder build --rpms --from-sources [--debuginfo=no] [--test]"
 	echo "		build from source codes"
 	echo
 	echo "./builder test --docker [--from-sources]"
@@ -671,6 +671,7 @@ FLAG_FROM_SOURCES_IN_BUILD_DIR=''
 FLAG_FROM_SOURCES_IN_SOURCES_DIR=''
 FLAG_FROM_ARCHIVE=''
 FLAG_FROM_SOURCES=''
+FLAG_DEBUGINFO='yes'
 FLAG_DOCKER=''
 FLAG_LOCAL=''
 FLAG_LOCAL_SQL=''
@@ -691,6 +692,7 @@ from-sources-in-BUILD-dir,\
 from-sources-in-SOURCES-dir,\
 from-archive,\
 from-sources,\
+debuginfo:,\
 docker,\
 local,\
 local-sql,\
@@ -761,6 +763,18 @@ while true; do
 		;;
 	--from-sources)
 		FLAG_FROM_SOURCES='yes'
+		;;
+	--debuginfo)
+		# Arg is recognized, shift to the value, which is the next arg
+		shift
+
+		FLAG_DEBUGINFO=$1
+
+		if [ "$FLAG_DEBUGINFO" == "no" ] || [ "$FLAG_DEBUGINFO" == "0" ] || [ "$FLAG_DEBUGINFO" == "off" ]; then
+			export FLAG_DEBUGINFO="no"
+		else
+			export FLAG_DEBUGINFO="yes"
+		fi
 		;;
 	--docker)
 		FLAG_DOCKER='yes'

@@ -114,48 +114,60 @@ if [ "${REBUILD_RPMS}" == "yes" ]; then
 	# Sources are already expected to be located in BUILD/ClickHouse-%{version}-@CH_TAG@
 	# and would be used 'as is'. This is the way to go in case you need to modify sources
 
-	# 1. Do not delete BUILD/ClickHouse-%{version}-@CH_TAG@ folder
-	# 2. Do not copy sources .zip from SOURCES, do not unpack .zip archive into BUILD/, 
-	# 3. just cd into BUILD/ClickHouse-%{version}-@CH_TAG@ - it has to be here
+	if [ "$FLAG_DEBUGINFO" == "yes" ]; then
+
+		echo "Call setup with debuginfo"
+		# 1. Do not delete BUILD/ClickHouse-%{version}-@CH_TAG@ folder
+		# 2. Do not copy sources .zip from SOURCES, do not unpack .zip archive into BUILD/, 
+		# 3. just cd into BUILD/ClickHouse-%{version}-@CH_TAG@ - it has to be here
+		# And after that prepare sources for debuginfo RPMs to be built
 %setup -D -T -n ClickHouse-%{version}-@CH_TAG@
 
-	# What this setup directive actually does:
-	# cd into rpmbuild/BUILD
-	# cd "${BUILD_DIR}"
+	else
+		echo "Prepare sources"
 
-	# Jump into rpmbuild/BUILD/ch_sources_dir and fix flags
-	# cd ClickHouse-%{version}-@CH_TAG@
-	# chmod -Rf a+rX,u+w,g-w,o-w .
-	
-	# And after that prepare sources for debuginfo RPMs to be built
+		# What this setup directive actually does:
+		# cd into rpmbuild/BUILD
+		cd "${BUILD_DIR}"
+
+		# Jump into rpmbuild/BUILD/ch_sources_dir and fix flags
+		cd ClickHouse-%{version}-@CH_TAG@
+		chmod -Rf a+rX,u+w,g-w,o-w .
+	fi
 
 else
 	echo "Build RPMs from SOURCES/.zip file"
-	# Prepare sources from .zip release source file
-	# 1. Delete BUILD/ClickHouse-%{version}-@CH_TAG@ folder
-	# 2. copy .zip file from SOURSES to BUILD, unpack .zip file. Important .zip file has to have ClickHouse-%{version}-@CH_TAG@ folder inside
-	# 3. cd into BUILD/ClickHouse-%{version}-@CH_TAG@, which is expected to be in .zip file
 
+	if [ "$FLAG_DEBUGINFO" == "yes" ]; then
+		echo "Call setup with debuginfo"
+
+		# Prepare sources from .zip release source file
+		# 1. Delete BUILD/ClickHouse-%{version}-@CH_TAG@ folder
+		# 2. copy .zip file from SOURSES to BUILD, unpack .zip file. Important .zip file has to have ClickHouse-%{version}-@CH_TAG@ folder inside
+		# 3. cd into BUILD/ClickHouse-%{version}-@CH_TAG@, which is expected to be in .zip file
+		# And after that prepare sources for debuginfo RPMs to be built
 %setup -q -n ClickHouse-%{version}-@CH_TAG@
 
-	# What this setup directive actually does:
-	# cd into rpmbuild/BUILD
-	# cd "${BUILD_DIR}"
+	else
+		echo "Prepare sources"
 
-	# Remove dir and .zip file
-	# rm -rf ClickHouse-%{version}-@CH_TAG@
-	# rm -rf ClickHouse-%{version}-@CH_TAG@.zip
+		# What this setup directive actually does:
+		# cd into rpmbuild/BUILD
+		cd "${BUILD_DIR}"
 
-	# Copy .zip file from rpmbuild/SOURCES into rpmbuild/BUILD, unpack and remove .zip
-	# cp -f "${SOURCES_DIR}"/ClickHouse-%{version}-@CH_TAG@.zip .
-	# unzip -q ClickHouse-%{version}-@CH_TAG@.zip
-	# rm -rf ClickHouse-%{version}-@CH_TAG@.zip
+		# Remove dir and .zip file
+		rm -rf ClickHouse-%{version}-@CH_TAG@
+		rm -rf ClickHouse-%{version}-@CH_TAG@.zip
 
-	# Jump into rpmbuild/BUILD/ch_sources_dir and fix flags
-	# cd ClickHouse-%{version}-@CH_TAG@
-	# chmod -Rf a+rX,u+w,g-w,o-w .
+		# Copy .zip file from rpmbuild/SOURCES into rpmbuild/BUILD, unpack and remove .zip
+		cp -f "${SOURCES_DIR}"/ClickHouse-%{version}-@CH_TAG@.zip .
+		unzip -q ClickHouse-%{version}-@CH_TAG@.zip
+		rm -rf ClickHouse-%{version}-@CH_TAG@.zip
 
-	# And after that prepare sources for debuginfo RPMs to be built
+		# Jump into rpmbuild/BUILD/ch_sources_dir and fix flags
+		cd ClickHouse-%{version}-@CH_TAG@
+		chmod -Rf a+rX,u+w,g-w,o-w .
+	fi
 fi
 
 
@@ -182,9 +194,15 @@ if [ ! -z $USE_NINJA_BUILD ]; then
 	ninja-build @MAKE_OPTIONS@
 else
 	# use original cmake
-	$CMAKE ..          -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE:STRING=Release @CMAKE_OPTIONS@
-
-#	$CMAKE ..          -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE:STRING=Release @CMAKE_OPTIONS@
+	if [ "$FLAG_DEBUGINFO" == "yes" ]; then
+		echo "**************"
+		echo " SPECIFY :STRING correctly"
+		echo "**************"
+		exit 1
+		$CMAKE ..          -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE:STRING=Release @CMAKE_OPTIONS@
+	else
+		$CMAKE ..          -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE:STRING=Release @CMAKE_OPTIONS@
+	fi
 	make %{?_smp_mflags} @MAKE_OPTIONS@
 fi
 
