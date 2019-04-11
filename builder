@@ -150,10 +150,10 @@ function install_build_process_dependencies()
 		fi
 
 		sudo yum install -y centos-release-scl
-		sudo yum install -y devtoolset-7
+		sudo yum install -y devtoolset-8
 	elif os_ol; then
 		sudo yum install -y scl-utils
-		sudo yum install -y devtoolset-7
+		sudo yum install -y devtoolset-8
 		sudo yum install -y cmake3
 	else
 		# fedora
@@ -341,8 +341,8 @@ function build_RPMs()
 	banner "Setup path to compilers"
 	if os_centos || os_ol; then
 		export CMAKE=cmake3
-		export CC=/opt/rh/devtoolset-7/root/usr/bin/gcc
-		export CXX=/opt/rh/devtoolset-7/root/usr/bin/g++
+		export CC=/opt/rh/devtoolset-8/root/usr/bin/gcc
+		export CXX=/opt/rh/devtoolset-8/root/usr/bin/g++
 		#export CXXFLAGS="${CXXFLAGS} -Wno-maybe-uninitialized"
 	else
 		export CMAKE=cmake
