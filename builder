@@ -774,10 +774,10 @@ while true; do
 
 		if [ "$1" == "no" ] || [ "$1" == "0" ] || [ "$1" == "off" ]; then
 			echo "DEBUGINFO turned OFF"
-			export FLAG_DEBUGINFO="no"
+			FLAG_DEBUGINFO="no"
 		else
 			echo "DEBUGINFO turned ON"
-			export FLAG_DEBUGINFO="yes"
+			FLAG_DEBUGINFO="yes"
 		fi
 		;;
 	--docker)
@@ -828,6 +828,7 @@ fi
 COMMAND=${UNDASHED_ARGS[0]}
 
 export REBUILD_RPMS="no"
+export FLAG_DEBUGINFO
 set_rpmbuild_dirs $RPMBUILD_ROOT_DIR
 os_detect
 if os_centos_6; then
