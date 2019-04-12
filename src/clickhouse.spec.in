@@ -102,6 +102,8 @@ This package contains test suite for ClickHouse DBMS
 ##
 
 %prep
+
+#read -p "Before 'prep'. Press enter to continue"
 # @CH_VERSION@="18.10.3"
 # @CH_TAG@="stable"
 
@@ -170,12 +172,16 @@ else
 	fi
 fi
 
+#read -p "After 'prep'. Press enter to continue"
+
 
 ##
 ## build stage
 ##
 
 %build
+
+#read -p "Before 'build'. Press enter to continue"
 echo "Start build"
 
 # Jump into rpmbuild/BUILD/ClickHouse-%{version}-@CH_TAG@ folder now
@@ -215,12 +221,15 @@ if [ "${TEST_BINARIES}" == "yes" ]; then
 fi
 
 cd ..
+#read -p "After 'build'. Press enter to continue"
 
 ##
 ## install stage
 ##
 
 %install
+
+#read -p "Before 'install'. Press enter to continue"
 
 # %{buildroot} = rpmbuild/BUILDROOT/clickhouse-18.14.15-1.el7.x86_64
 rm -rf %{buildroot}
@@ -256,13 +265,19 @@ cp "${BUILD_DIR}"/ClickHouse-%{version}-@CH_TAG@/debian/clickhouse.limits       
 cp "${BUILD_DIR}"/ClickHouse-%{version}-@CH_TAG@/dbms/programs/server/config.xml %{buildroot}/etc/clickhouse-server/
 cp "${BUILD_DIR}"/ClickHouse-%{version}-@CH_TAG@/dbms/programs/server/users.xml  %{buildroot}/etc/clickhouse-server/
 
+#read -p "After 'install'. Press enter to continue"
+
 ##
 ## clean stage
 ##
 
 %clean
+
+#read -p "Before 'clean'. Press enter to continue"
 # %{buildroot} = rpmbuild/BUILDROOT/clickhouse-18.14.15-1.el7.x86_64
 rm -rf %{buildroot}
+
+#read -p "After 'clean'. Press enter to continue"
 
 ##
 ## clickhouse-client package
