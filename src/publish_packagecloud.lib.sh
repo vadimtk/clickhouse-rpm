@@ -16,6 +16,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+##
+##
+##
 function publish_packagecloud_distro_version_id()
 {
 	# EL6  - 27
@@ -66,6 +69,9 @@ function publish_packagecloud_distro_version_id()
 	exit 1
 }
 
+##
+##
+##
 function publish_packagecloud_file()
 {
 	# Packagecloud user id. Ex.: 123ab45678c9012d3e4567890abcdef1234567890abcdef1
@@ -91,6 +97,9 @@ function publish_packagecloud_file()
 	fi
 }
 
+##
+##
+##
 function publish_packagecloud_files_list()
 {
 	# Packagecloud user id. Ex.: 123ab45678c9012d3e4567890abcdef1234567890abcdef1
@@ -116,6 +125,9 @@ function publish_packagecloud_files_list()
 	fi
 }
 
+##
+##
+##
 function publish_packagecloud()
 {
 	# Packagecloud user id. Ex.: 123ab45678c9012d3e4567890abcdef1234567890abcdef1
@@ -137,6 +149,9 @@ function publish_packagecloud()
 	fi
 }
 
+##
+##
+##
 function publish_packagecloud_delete()
 {
 	# Packagecloud user id. Ex.: 123ab45678c9012d3e4567890abcdef1234567890abcdef1
@@ -173,3 +188,4 @@ function publish_packagecloud_delete()
 	fi
 
 }
+
