@@ -195,13 +195,9 @@ if [ ! -z $USE_NINJA_BUILD ]; then
 else
 	# use original cmake
 	if [ "$FLAG_DEBUGINFO" == "yes" ]; then
-		echo "**************"
-		echo " SPECIFY :STRING correctly"
-		echo "**************"
-		exit 1
-		$CMAKE ..          -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE:STRING=Release @CMAKE_OPTIONS@
+		$CMAKE .. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo @CMAKE_OPTIONS@
 	else
-		$CMAKE ..          -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE:STRING=Release @CMAKE_OPTIONS@
+		$CMAKE .. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE:STRING=Release @CMAKE_OPTIONS@
 	fi
 	make %{?_smp_mflags} @MAKE_OPTIONS@
 fi
