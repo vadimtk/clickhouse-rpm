@@ -629,8 +629,10 @@ function usage()
 	echo
 	echo "./builder repo --publish --packagecloud=<packagecloud USER ID>"
 	echo "		publish packages on packagecloud as USER"
-	echo "./builder repo --delete  --packagecloud=<packagecloud USER ID>"
-	echo "		delete packages on packagecloud as USER"
+	echo "./builder repo --delete  --packagecloud=<packagecloud USER ID> file1_URL [file2_URL ...]"
+	echo "		delete packages (specified as URL to file) on packagecloud as USER"
+	echo "		URL to file to be deleted can be copy+pasted from packagecloud.io site and is expected as:"
+	echo "		https://packagecloud.io/Altinity/clickhouse/packages/el/7/clickhouse-test-19.4.3.1-1.el7.x86_64.rpm"
 	echo
 	echo "./builder src --download"
 	echo "		just download sources"

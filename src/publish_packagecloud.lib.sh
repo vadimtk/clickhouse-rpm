@@ -144,18 +144,22 @@ function publish_packagecloud_delete()
 
 	if [ -n "$2" ]; then
 		# Have args specified. Treat it as a list of files to publish
-		for FILE in ${@:2}; do
+		for GUI_FILE_URL in ${@:2}; do
 
-			# make https://123456eae45643234234234234234234534aehaeh234ahdh:@packagecloud.io/api/v1/repos/altinity/clickhouse/PATH/TO/FILE
-			# which is the URL used for deletetion,
-			# out of
-			# https://packagecloud.io/altinity/clickhouse/packages/PATH/TO/FILE 
+			# url api endpoint proviede by packagecloud to delete file is of the form:
+			# https://<PACKAGECLOUD_ID>:@packagecloud.io/api/v1/repos/altinity/clickhouse/el/[6,7]/file.rpm
+			# while url exposed for downloading files is of the form:
+			# https://packagecloud.io/altinity/clickhouse/packages/el/[6,7]/file.rpm
+			# so we need to make
+			# https://<PACKAGECLOUD_ID>:@packagecloud.io/api/v1/repos/altinity/clickhouse/el/7/file.rpm
+			# which is the URL used far deletetion, out of
+			# https://packagecloud.io/altinity/clickhouse/packages/el/7/file.rpm
 			# which is URL presented by packagecloud in their GUI
 			# (don't ask, why are those URIs different, just replace what is needed)
-			URL="${FILE/packagecloud.io/$PACKAGECLOUD_ID:@packagecloud.io/api/v1/repos}"
+			URL="${GUI_FILE_URL/packagecloud.io/$PACKAGECLOUD_ID:@packagecloud.io/api/v1/repos}"
 			URL="${URL/packages\//}"
 			echo "Deleting"
-			echo "file: $FILE"
+			echo "file: $GUI_FILE_URL"
 			echo "URL : $URL"
 			echo -n "Delete result"
 			if curl --show-error --silent --output /dev/null -X DELETE "$URL"; then
@@ -169,4 +173,3 @@ function publish_packagecloud_delete()
 	fi
 
 }
-
