@@ -266,3 +266,22 @@ function os_detect()
 	echo "OS detected: $OS $DISTR_MAJOR $DISTR_MINOR"
 }
 
+##
+##
+##
+function press_enter()
+{
+	read -p "Press enter to continue"
+}
+
+##
+##
+##
+function press_any_key()
+{
+	# -n character count to stop reading
+	# -s hide input
+	# -r interpret string in raw - without considering backslash escapes
+	read -n 1 -s -r -p "Press any key to continue"
+}
+
