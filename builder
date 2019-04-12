@@ -583,9 +583,9 @@ function usage()
 	echo "./builder version"
 	echo "		display default version to build"
 	echo
-	echo "./builder all"
+	echo "./builder all [--debuginfo=no]"
 	echo "		install build deps, download sources, build RPMs"
-	echo "./builder all --test"
+	echo "./builder all --test [--debuginfo=no]"
 	echo "		install build+test deps, download sources, build+test and test RPMs"
 	echo
 	echo "./builder install --build-deps"
@@ -770,11 +770,13 @@ while true; do
 		# Arg is recognized, shift to the value, which is the next arg
 		shift
 
-		FLAG_DEBUGINFO=$1
+		# $1 is value of --debuginfo=x
 
-		if [ "$FLAG_DEBUGINFO" == "no" ] || [ "$FLAG_DEBUGINFO" == "0" ] || [ "$FLAG_DEBUGINFO" == "off" ]; then
+		if [ "$1" == "no" ] || [ "$1" == "0" ] || [ "$1" == "off" ]; then
+			echo "DEBUGINFO turned OFF"
 			export FLAG_DEBUGINFO="no"
 		else
+			echo "DEBUGINFO turned ON"
 			export FLAG_DEBUGINFO="yes"
 		fi
 		;;
