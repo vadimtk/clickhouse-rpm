@@ -103,7 +103,8 @@ This package contains test suite for ClickHouse DBMS
 
 %prep
 
-#read -p "Before 'prep'. Press enter to continue"
+echo "'prep' started."
+#read -p "'prep' started. Press enter to continue"
 # @CH_VERSION@="18.10.3"
 # @CH_TAG@="stable"
 
@@ -116,7 +117,7 @@ if [ "${REBUILD_RPMS}" == "yes" ]; then
 	# Sources are already expected to be located in BUILD/ClickHouse-%{version}-@CH_TAG@
 	# and would be used 'as is'. This is the way to go in case you need to modify sources
 
-	if [ "$FLAG_DEBUGINFO" == "yes" ]; then
+	if [ "${FLAG_DEBUGINFO}" == "yes" ]; then
 
 		echo "Call setup with debuginfo"
 		# 1. Do not delete BUILD/ClickHouse-%{version}-@CH_TAG@ folder
@@ -140,7 +141,7 @@ if [ "${REBUILD_RPMS}" == "yes" ]; then
 else
 	echo "Build RPMs from SOURCES/.zip file"
 
-	if [ "$FLAG_DEBUGINFO" == "yes" ]; then
+	if [ "${FLAG_DEBUGINFO}" == "yes" ]; then
 		echo "Call setup with debuginfo"
 
 		# Prepare sources from .zip release source file
@@ -159,12 +160,13 @@ else
 
 		# Remove dir and .zip file
 		rm -rf ClickHouse-%{version}-@CH_TAG@
-		rm -rf ClickHouse-%{version}-@CH_TAG@.zip
 
-		# Copy .zip file from rpmbuild/SOURCES into rpmbuild/BUILD, unpack and remove .zip
-		cp -f "${SOURCES_DIR}"/ClickHouse-%{version}-@CH_TAG@.zip .
-		unzip -q ClickHouse-%{version}-@CH_TAG@.zip
-		rm -rf ClickHouse-%{version}-@CH_TAG@.zip
+		# unzip from rpmbuild/SOURCES/src.zip into rpmbuild/BUILD
+		unzip -qq "${SOURCES_DIR}"/ClickHouse-%{version}-@CH_TAG@.zip
+		STATUS=$?
+		if [ $STATUS -ne 0 ]; then
+			exit $STATUS
+		fi
 
 		# Jump into rpmbuild/BUILD/ch_sources_dir and fix flags
 		cd ClickHouse-%{version}-@CH_TAG@
@@ -172,7 +174,8 @@ else
 	fi
 fi
 
-#read -p "After 'prep'. Press enter to continue"
+echo "'prep' completed."
+#read -p "'prep' completed. Press enter to continue"
 
 
 ##
@@ -181,8 +184,8 @@ fi
 
 %build
 
-#read -p "Before 'build'. Press enter to continue"
-echo "Start build"
+echo "'build' started."
+#read -p "'build' started. Press enter to continue"
 
 # Jump into rpmbuild/BUILD/ClickHouse-%{version}-@CH_TAG@ folder now
 cd "${BUILD_DIR}"
@@ -200,11 +203,14 @@ if [ ! -z $USE_NINJA_BUILD ]; then
 	ninja-build @MAKE_OPTIONS@
 else
 	# use original cmake
-	if [ "$FLAG_DEBUGINFO" == "yes" ]; then
-		$CMAKE .. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo @CMAKE_OPTIONS@
+	if [ "${FLAG_DEBUGINFO}" == "yes" ]; then
+		CMAKE_BUILD_TYPE="RelWithDebInfo"
 	else
-		$CMAKE .. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE:STRING=Release @CMAKE_OPTIONS@
+		CMAKE_BUILD_TYPE="Release"
 	fi
+	echo "CMAKE_BUILD_TYPE==${CMAKE_BUILD_TYPE}"
+
+	$CMAKE .. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE:STRING=$CMAKE_BUILD_TYPE @CMAKE_OPTIONS@
 	make %{?_smp_mflags} @MAKE_OPTIONS@
 fi
 
@@ -221,7 +227,9 @@ if [ "${TEST_BINARIES}" == "yes" ]; then
 fi
 
 cd ..
-#read -p "After 'build'. Press enter to continue"
+
+echo "'build' completed."
+#read -p "'build' completed. Press enter to continue"
 
 ##
 ## install stage
@@ -229,7 +237,8 @@ cd ..
 
 %install
 
-#read -p "Before 'install'. Press enter to continue"
+echo "'install' started."
+#read -p "'install' started. Press enter to continue"
 
 # %{buildroot} = rpmbuild/BUILDROOT/clickhouse-18.14.15-1.el7.x86_64
 rm -rf %{buildroot}
@@ -265,7 +274,8 @@ cp "${BUILD_DIR}"/ClickHouse-%{version}-@CH_TAG@/debian/clickhouse.limits       
 cp "${BUILD_DIR}"/ClickHouse-%{version}-@CH_TAG@/dbms/programs/server/config.xml %{buildroot}/etc/clickhouse-server/
 cp "${BUILD_DIR}"/ClickHouse-%{version}-@CH_TAG@/dbms/programs/server/users.xml  %{buildroot}/etc/clickhouse-server/
 
-#read -p "After 'install'. Press enter to continue"
+echo "'install' completed."
+#read -p "'install' completed. Press enter to continue"
 
 ##
 ## clean stage
@@ -273,11 +283,14 @@ cp "${BUILD_DIR}"/ClickHouse-%{version}-@CH_TAG@/dbms/programs/server/users.xml 
 
 %clean
 
-#read -p "Before 'clean'. Press enter to continue"
+echo "'clean' started."
+#read -p "'clean' started. Press enter to continue"
+
 # %{buildroot} = rpmbuild/BUILDROOT/clickhouse-18.14.15-1.el7.x86_64
 rm -rf %{buildroot}
 
-#read -p "After 'clean'. Press enter to continue"
+echo "'clean' completed."
+#read -p "'clean' completed. Press enter to continue"
 
 ##
 ## clickhouse-client package
