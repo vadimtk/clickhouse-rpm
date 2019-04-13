@@ -336,7 +336,12 @@ function build_RPMs()
 	banner "Setup RPM Macros"
 	echo '%_topdir '"$RPMBUILD_ROOT_DIR"'
 %_tmppath '"$TMP_DIR"'
-%_smp_mflags  -j'"$THREADS" > ~/.rpmmacros
+%_smp_mflags -j'"$THREADS" > ~/.rpmmacros
+	if [ "${FLAG_DEBUGINFO}" == "no" ]; then
+		echo "%debug_package %{nil}" >> ~/.rpmmacros
+
+	fi
+
 
 	banner "Setup path to compilers"
 	if os_centos || os_ol; then
