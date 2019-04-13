@@ -235,8 +235,8 @@ cd ClickHouse-%{version}-@CH_TAG@
 
 cd build
 DAEMONS="clickhouse clickhouse-test clickhouse-compressor clickhouse-client clickhouse-server"
-for daemon in $DAEMONS; do \
-        DESTDIR=%{buildroot} $CMAKE -DCOMPONENT=$daemon -P cmake_install.cmake; \
+for daemon in $DAEMONS; do
+	DESTDIR=%{buildroot} $CMAKE -DCOMPONENT=$daemon -P cmake_install.cmake
 done
 cd ..
 
