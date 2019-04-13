@@ -22,6 +22,9 @@ CLICKHOUSE_GROUP=${CLICKHOUSE_USER}
 CLICKHOUSE_DATADIR=/var/lib/clickhouse
 CLICKHOUSE_LOGDIR=/var/log/clickhouse-server
 
+##
+##
+##
 function create_system_user()
 {
 	USER=$1

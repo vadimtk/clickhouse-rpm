@@ -150,10 +150,10 @@ function install_build_process_dependencies()
 		fi
 
 		sudo yum install -y centos-release-scl
-		sudo yum install -y devtoolset-7
+		sudo yum install -y devtoolset-8
 	elif os_ol; then
 		sudo yum install -y scl-utils
-		sudo yum install -y devtoolset-7
+		sudo yum install -y devtoolset-8
 		sudo yum install -y cmake3
 	else
 		# fedora
@@ -336,13 +336,18 @@ function build_RPMs()
 	banner "Setup RPM Macros"
 	echo '%_topdir '"$RPMBUILD_ROOT_DIR"'
 %_tmppath '"$TMP_DIR"'
-%_smp_mflags  -j'"$THREADS" > ~/.rpmmacros
+%_smp_mflags -j'"$THREADS" > ~/.rpmmacros
+	if [ "${FLAG_DEBUGINFO}" == "no" ]; then
+		echo "%debug_package %{nil}" >> ~/.rpmmacros
+
+	fi
+
 
 	banner "Setup path to compilers"
 	if os_centos || os_ol; then
 		export CMAKE=cmake3
-		export CC=/opt/rh/devtoolset-7/root/usr/bin/gcc
-		export CXX=/opt/rh/devtoolset-7/root/usr/bin/g++
+		export CC=/opt/rh/devtoolset-8/root/usr/bin/gcc
+		export CXX=/opt/rh/devtoolset-8/root/usr/bin/g++
 		#export CXXFLAGS="${CXXFLAGS} -Wno-maybe-uninitialized"
 	else
 		export CMAKE=cmake
@@ -583,9 +588,9 @@ function usage()
 	echo "./builder version"
 	echo "		display default version to build"
 	echo
-	echo "./builder all"
+	echo "./builder all [--debuginfo=no]"
 	echo "		install build deps, download sources, build RPMs"
-	echo "./builder all --test"
+	echo "./builder all --test [--debuginfo=no]"
 	echo "		install build+test deps, download sources, build+test and test RPMs"
 	echo
 	echo "./builder install --build-deps"
@@ -600,24 +605,24 @@ function usage()
 	echo "./builder build --spec"
 	echo "		just create SPEC file"
 	echo "		do not download sources, do not build RPMs"
-	echo "./builder build --rpms [--test]"
+	echo "./builder build --rpms [--debuginfo=no] [--test] "
 	echo "		download sources, build SPEC file, build RPMs"
 	echo "		do not install dependencies"
 	echo "./builder build --download-sources"
 	echo "		just download sources into \$RPMBUILD_ROOT_DIR/SOURCES/ClickHouse-\$CH_VERSION-\$CH_TAG folder"
 	echo "		(do not create SPEC file, do not install dependencies, do not build)"
-	echo "./builder build --rpms --from-sources-in-BUILD-dir [--test]"
+	echo "./builder build --rpms --from-sources-in-BUILD-dir [--debuginfo=no] [--test]"
 	echo "		just build RPMs from unpacked sources - most likely you have modified them"
 	echo "		sources are in \$RPMBUILD_ROOT_DIR/BUILD/ClickHouse-\$CH_VERSION-\$CH_TAG folder"
 	echo "		(do not download sources, do not create SPEC file, do not install dependencies)"
-	echo "./builder build --rpms --from-sources-in-SOURCES-dir [--test]"
+	echo "./builder build --rpms --from-sources-in-SOURCES-dir [--debuginfo=no] [--test]"
 	echo "		just build RPMs from unpacked sources - most likely you have modified them"
 	echo "		sources are in \$RPMBUILD_ROOT_DIR/SOURCES/ClickHouse-\$CH_VERSION-\$CH_TAG folder"
 	echo "		(do not download sources, do not create SPEC file, do not install dependencies)"
-	echo "./builder build --rpms --from-archive [--test]"
+	echo "./builder build --rpms --from-archive [--debuginfo=no] [--test]"
 	echo "		just build RPMs from \$RPMBUILD_ROOT_DIR/SOURCES/ClickHouse-\$CH_VERSION-\$CH_TAG folder.zip sources"
 	echo "		(do not download sources, do not create SPEC file, do not install dependencies)"
-	echo "./builder build --rpms --from-sources [--test]"
+	echo "./builder build --rpms --from-sources [--debuginfo=no] [--test]"
 	echo "		build from source codes"
 	echo
 	echo "./builder test --docker [--from-sources]"
@@ -629,8 +634,10 @@ function usage()
 	echo
 	echo "./builder repo --publish --packagecloud=<packagecloud USER ID>"
 	echo "		publish packages on packagecloud as USER"
-	echo "./builder repo --delete  --packagecloud=<packagecloud USER ID>"
-	echo "		delete packages on packagecloud as USER"
+	echo "./builder repo --delete  --packagecloud=<packagecloud USER ID> file1_URL [file2_URL ...]"
+	echo "		delete packages (specified as URL to file) on packagecloud as USER"
+	echo "		URL to file to be deleted can be copy+pasted from packagecloud.io site and is expected as:"
+	echo "		https://packagecloud.io/Altinity/clickhouse/packages/el/7/clickhouse-test-19.4.3.1-1.el7.x86_64.rpm"
 	echo
 	echo "./builder src --download"
 	echo "		just download sources"
@@ -671,6 +678,7 @@ FLAG_FROM_SOURCES_IN_BUILD_DIR=''
 FLAG_FROM_SOURCES_IN_SOURCES_DIR=''
 FLAG_FROM_ARCHIVE=''
 FLAG_FROM_SOURCES=''
+FLAG_DEBUGINFO='yes'
 FLAG_DOCKER=''
 FLAG_LOCAL=''
 FLAG_LOCAL_SQL=''
@@ -691,6 +699,7 @@ from-sources-in-BUILD-dir,\
 from-sources-in-SOURCES-dir,\
 from-archive,\
 from-sources,\
+debuginfo:,\
 docker,\
 local,\
 local-sql,\
@@ -762,6 +771,20 @@ while true; do
 	--from-sources)
 		FLAG_FROM_SOURCES='yes'
 		;;
+	--debuginfo)
+		# Arg is recognized, shift to the value, which is the next arg
+		shift
+
+		# $1 is value of --debuginfo=x
+
+		if [ "$1" == "no" ] || [ "$1" == "0" ] || [ "$1" == "off" ]; then
+			echo "DEBUGINFO turned OFF"
+			FLAG_DEBUGINFO="no"
+		else
+			echo "DEBUGINFO turned ON"
+			FLAG_DEBUGINFO="yes"
+		fi
+		;;
 	--docker)
 		FLAG_DOCKER='yes'
 		;;
@@ -810,6 +833,7 @@ fi
 COMMAND=${UNDASHED_ARGS[0]}
 
 export REBUILD_RPMS="no"
+export FLAG_DEBUGINFO
 set_rpmbuild_dirs $RPMBUILD_ROOT_DIR
 os_detect
 if os_centos_6; then
@@ -1039,7 +1063,7 @@ repo)
 
 		# run publish script with all the rest of CLI params
 		FILES=("${UNDASHED_ARGS[@]:1}")
-		publish_packagecloud_delete ${FILES[@]/#/}
+		publish_packagecloud_delete $FLAG_PACKAGECLOUD ${FILES[@]/#/}
 	else
 		echo "Unknwon $COMMAND path"
 		exit 1

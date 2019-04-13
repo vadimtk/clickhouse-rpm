@@ -102,6 +102,9 @@ This package contains test suite for ClickHouse DBMS
 ##
 
 %prep
+
+echo "'prep' started."
+#read -p "'prep' started. Press enter to continue"
 # @CH_VERSION@="18.10.3"
 # @CH_TAG@="stable"
 
@@ -114,12 +117,19 @@ if [ "${REBUILD_RPMS}" == "yes" ]; then
 	# Sources are already expected to be located in BUILD/ClickHouse-%{version}-@CH_TAG@
 	# and would be used 'as is'. This is the way to go in case you need to modify sources
 
-	# rpmbuild/BUILD
-	cd "${BUILD_DIR}"
-
+	# 1. Do not delete BUILD/ClickHouse-%{version}-@CH_TAG@ folder
+	# 2. Do not copy sources .zip from SOURCES, do not unpack .zip archive into BUILD/, 
+	# 3. just cd into BUILD/ClickHouse-%{version}-@CH_TAG@ - it has to be here
+	# And after that prepare sources for debuginfo RPMs to be built
+%setup -D -T -n ClickHouse-%{version}-@CH_TAG@
+	# What this setup directive actually does:
+	# cd into rpmbuild/BUILD
+	# cd "${BUILD_DIR}"
 	# Jump into rpmbuild/BUILD/ch_sources_dir and fix flags
-	cd ClickHouse-%{version}-@CH_TAG@
-	chmod -Rf a+rX,u+w,g-w,o-w .
+	# cd ClickHouse-%{version}-@CH_TAG@
+	# chmod -Rf a+rX,u+w,g-w,o-w .
+	# And registers debiginfo packages
+	# IMPORTANT - debug packages are not built without 'setup' called
 
 else
 	echo "Build RPMs from SOURCES/.zip file"
@@ -127,23 +137,28 @@ else
 	# 1. Delete BUILD/ClickHouse-%{version}-@CH_TAG@ folder
 	# 2. copy .zip file from SOURSES to BUILD, unpack .zip file. Important .zip file has to have ClickHouse-%{version}-@CH_TAG@ folder inside
 	# 3. cd into BUILD/ClickHouse-%{version}-@CH_TAG@, which is expected to be in .zip file
-
-	# rpmbuild/BUILD
-	cd "${BUILD_DIR}"
-
+	# And after that prepare sources for debuginfo RPMs to be built
+%setup -q -n ClickHouse-%{version}-@CH_TAG@
+	# What this setup directive actually does:
+	# cd into rpmbuild/BUILD
+	# cd "${BUILD_DIR}"
 	# Remove dir and .zip file
-	rm -rf ClickHouse-%{version}-@CH_TAG@
-	rm -rf ClickHouse-%{version}-@CH_TAG@.zip
-
-	# Copy .zip file from rpmbuild/SOURCES into rpmbuild/BUILD, unpack and remove .zip
-	cp -f "${SOURCES_DIR}"/ClickHouse-%{version}-@CH_TAG@.zip .
-	unzip -q ClickHouse-%{version}-@CH_TAG@.zip
-	rm -rf ClickHouse-%{version}-@CH_TAG@.zip
-
+	# rm -rf ClickHouse-%{version}-@CH_TAG@
+	# unzip from rpmbuild/SOURCES/src.zip into rpmbuild/BUILD
+	# unzip -qq "${SOURCES_DIR}"/ClickHouse-%{version}-@CH_TAG@.zip
+	# STATUS=$?
+	# if [ $STATUS -ne 0 ]; then
+	#	exit $STATUS
+	# fi
 	# Jump into rpmbuild/BUILD/ch_sources_dir and fix flags
-	cd ClickHouse-%{version}-@CH_TAG@
-	chmod -Rf a+rX,u+w,g-w,o-w .
+	# cd ClickHouse-%{version}-@CH_TAG@
+	# chmod -Rf a+rX,u+w,g-w,o-w .
+	# And registers debiginfo packages
+	# IMPORTANT - debug packages are not built without 'setup' called
 fi
+
+echo "'prep' completed."
+#read -p "'prep' completed. Press enter to continue"
 
 
 ##
@@ -151,7 +166,9 @@ fi
 ##
 
 %build
-echo "Start build"
+
+echo "'build' started."
+#read -p "'build' started. Press enter to continue"
 
 # Jump into rpmbuild/BUILD/ClickHouse-%{version}-@CH_TAG@ folder now
 cd "${BUILD_DIR}"
@@ -162,14 +179,24 @@ mkdir -p build
 cd build
 ls | grep -v 'rpmbuild' | xargs rm -rf
 
+echo "********"
+echo "* MAKE *"
+echo "********"
+
+if [ "${FLAG_DEBUGINFO}" == "yes" ]; then
+	CMAKE_BUILD_TYPE="RelWithDebInfo"
+else
+	CMAKE_BUILD_TYPE="Release"
+fi
+echo "CMAKE_BUILD_TYPE==${CMAKE_BUILD_TYPE}"
 
 if [ ! -z $USE_NINJA_BUILD ]; then
 	# use ninja-build
-	$CMAKE .. -G Ninja -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE:STRING=Release @CMAKE_OPTIONS@
+	$CMAKE .. -G Ninja -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE:STRING=$CMAKE_BUILD_TYPE @CMAKE_OPTIONS@
 	ninja-build @MAKE_OPTIONS@
 else
 	# use original cmake
-	$CMAKE ..          -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE:STRING=Release @CMAKE_OPTIONS@
+	$CMAKE .. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE:STRING=$CMAKE_BUILD_TYPE @CMAKE_OPTIONS@
 	make %{?_smp_mflags} @MAKE_OPTIONS@
 fi
 
@@ -187,11 +214,17 @@ fi
 
 cd ..
 
+echo "'build' completed."
+#read -p "'build' completed. Press enter to continue"
+
 ##
 ## install stage
 ##
 
 %install
+
+echo "'install' started."
+#read -p "'install' started. Press enter to continue"
 
 # %{buildroot} = rpmbuild/BUILDROOT/clickhouse-18.14.15-1.el7.x86_64
 rm -rf %{buildroot}
@@ -202,8 +235,8 @@ cd ClickHouse-%{version}-@CH_TAG@
 
 cd build
 DAEMONS="clickhouse clickhouse-test clickhouse-compressor clickhouse-client clickhouse-server"
-for daemon in $DAEMONS; do \
-        DESTDIR=%{buildroot} $CMAKE -DCOMPONENT=$daemon -P cmake_install.cmake; \
+for daemon in $DAEMONS; do
+	DESTDIR=%{buildroot} $CMAKE -DCOMPONENT=$daemon -P cmake_install.cmake
 done
 cd ..
 
@@ -227,13 +260,23 @@ cp "${BUILD_DIR}"/ClickHouse-%{version}-@CH_TAG@/debian/clickhouse.limits       
 cp "${BUILD_DIR}"/ClickHouse-%{version}-@CH_TAG@/dbms/programs/server/config.xml %{buildroot}/etc/clickhouse-server/
 cp "${BUILD_DIR}"/ClickHouse-%{version}-@CH_TAG@/dbms/programs/server/users.xml  %{buildroot}/etc/clickhouse-server/
 
+echo "'install' completed."
+#read -p "'install' completed. Press enter to continue"
+
 ##
 ## clean stage
 ##
 
 %clean
+
+echo "'clean' started."
+#read -p "'clean' started. Press enter to continue"
+
 # %{buildroot} = rpmbuild/BUILDROOT/clickhouse-18.14.15-1.el7.x86_64
 rm -rf %{buildroot}
+
+echo "'clean' completed."
+#read -p "'clean' completed. Press enter to continue"
 
 ##
 ## clickhouse-client package
