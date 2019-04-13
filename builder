@@ -1063,7 +1063,7 @@ repo)
 
 		# run publish script with all the rest of CLI params
 		FILES=("${UNDASHED_ARGS[@]:1}")
-		publish_packagecloud_delete ${FILES[@]/#/}
+		publish_packagecloud_delete $FLAG_PACKAGECLOUD ${FILES[@]/#/}
 	else
 		echo "Unknwon $COMMAND path"
 		exit 1
