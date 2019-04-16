@@ -588,7 +588,7 @@ function usage()
 	echo "./builder version"
 	echo "		display default version to build"
 	echo
-	echo "./builder all [--debuginfo=no]"
+	echo "./builder all [--debuginfo=no] [--cmake-build-type=Debug]"
 	echo "		install build deps, download sources, build RPMs"
 	echo "./builder all --test [--debuginfo=no]"
 	echo "		install build+test deps, download sources, build+test and test RPMs"
@@ -605,24 +605,24 @@ function usage()
 	echo "./builder build --spec"
 	echo "		just create SPEC file"
 	echo "		do not download sources, do not build RPMs"
-	echo "./builder build --rpms [--debuginfo=no] [--test] "
+	echo "./builder build --rpms [--debuginfo=no] [--cmake-build-type=Debug] [--test] "
 	echo "		download sources, build SPEC file, build RPMs"
 	echo "		do not install dependencies"
 	echo "./builder build --download-sources"
 	echo "		just download sources into \$RPMBUILD_ROOT_DIR/SOURCES/ClickHouse-\$CH_VERSION-\$CH_TAG folder"
 	echo "		(do not create SPEC file, do not install dependencies, do not build)"
-	echo "./builder build --rpms --from-sources-in-BUILD-dir [--debuginfo=no] [--test]"
+	echo "./builder build --rpms --from-sources-in-BUILD-dir [--debuginfo=no] [--cmake-build-type=Debug] [--test]"
 	echo "		just build RPMs from unpacked sources - most likely you have modified them"
 	echo "		sources are in \$RPMBUILD_ROOT_DIR/BUILD/ClickHouse-\$CH_VERSION-\$CH_TAG folder"
 	echo "		(do not download sources, do not create SPEC file, do not install dependencies)"
-	echo "./builder build --rpms --from-sources-in-SOURCES-dir [--debuginfo=no] [--test]"
+	echo "./builder build --rpms --from-sources-in-SOURCES-dir [--debuginfo=no] [--cmake-build-type=Debug] [--test]"
 	echo "		just build RPMs from unpacked sources - most likely you have modified them"
 	echo "		sources are in \$RPMBUILD_ROOT_DIR/SOURCES/ClickHouse-\$CH_VERSION-\$CH_TAG folder"
 	echo "		(do not download sources, do not create SPEC file, do not install dependencies)"
-	echo "./builder build --rpms --from-archive [--debuginfo=no] [--test]"
+	echo "./builder build --rpms --from-archive [--debuginfo=no] [--cmake-build-type=Debug] [--test]"
 	echo "		just build RPMs from \$RPMBUILD_ROOT_DIR/SOURCES/ClickHouse-\$CH_VERSION-\$CH_TAG folder.zip sources"
 	echo "		(do not download sources, do not create SPEC file, do not install dependencies)"
-	echo "./builder build --rpms --from-sources [--debuginfo=no] [--test]"
+	echo "./builder build --rpms --from-sources [--debuginfo=no] [--cmake-build-type=Debug] [--test]"
 	echo "		build from source codes"
 	echo
 	echo "./builder test --docker [--from-sources]"
@@ -679,6 +679,7 @@ FLAG_FROM_SOURCES_IN_SOURCES_DIR=''
 FLAG_FROM_ARCHIVE=''
 FLAG_FROM_SOURCES=''
 FLAG_DEBUGINFO='yes'
+FLAG_CMAKE_BUILD_TYPE=''
 FLAG_DOCKER=''
 FLAG_LOCAL=''
 FLAG_LOCAL_SQL=''
@@ -700,6 +701,7 @@ from-sources-in-SOURCES-dir,\
 from-archive,\
 from-sources,\
 debuginfo:,\
+cmake-build-type:,\
 docker,\
 local,\
 local-sql,\
@@ -785,6 +787,21 @@ while true; do
 			FLAG_DEBUGINFO="yes"
 		fi
 		;;
+	--cmake-build=type)
+		# Arg is recognized, shift to the value, which is the next arg
+		shift
+
+		# $1 is value of --cmake-build-type=x
+		
+		# Full list is here: https://cmake.org/cmake/help/v3.0/variable/CMAKE_BUILD_TYPE.html
+		if [ "$1" == "Debug" ] || [ "$1" == "Release" ] || [ "$1" == "RelWithDebugInfo" ] || [ "$1" == "MinSizeRel" ]; then
+			FLAG_CMAKE_BUILD_TYPE="$1"
+		else
+			echo "Unrecognized value '$1' of --cmake-buid-type"
+			echo "Possible values: Debug Release RelWithDebugInfo MinSizeRel"
+			exit 1
+		fi
+		;;
 	--docker)
 		FLAG_DOCKER='yes'
 		;;
@@ -834,6 +851,7 @@ COMMAND=${UNDASHED_ARGS[0]}
 
 export REBUILD_RPMS="no"
 export FLAG_DEBUGINFO
+export FLAG_CMAKE_BUILD_TYPE
 set_rpmbuild_dirs $RPMBUILD_ROOT_DIR
 os_detect
 if os_centos_6; then
