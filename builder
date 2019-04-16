@@ -782,9 +782,13 @@ while true; do
 		if [ "$1" == "no" ] || [ "$1" == "0" ] || [ "$1" == "off" ]; then
 			echo "DEBUGINFO turned OFF"
 			FLAG_DEBUGINFO="no"
-		else
+		elif [ "$1" == "yes" ] || [ "$1" == "1" ] || [ "$1" == "on" ]; then
 			echo "DEBUGINFO turned ON"
 			FLAG_DEBUGINFO="yes"
+		else
+			echo "Unrecognized value '$1' of --debuginfo"
+			echo "Possible values yes/no 1/0 on/off"
+			exit 1
 		fi
 		;;
 	--cmake-build=type)
