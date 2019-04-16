@@ -791,7 +791,7 @@ while true; do
 			exit 1
 		fi
 		;;
-	--cmake-build=type)
+	--cmake-build-type)
 		# Arg is recognized, shift to the value, which is the next arg
 		shift
 
