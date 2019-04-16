@@ -184,19 +184,26 @@ echo "* MAKE *"
 echo "********"
 
 if [ "${FLAG_DEBUGINFO}" == "yes" ]; then
-	CMAKE_BUILD_TYPE="RelWithDebInfo"
+	if [ ! -z "${FLAG_CMAKE_BUILD_TYPE}" ]; then
+		# Explicitly specified --cmake-build-type
+		CMAKE_BUILD_TYPE="${FLAG_CMAKE_BUILD_TYPE}"
+	else
+		# --cmake-build-typw not specified, use default value
+		CMAKE_BUILD_TYPE="RelWithDebInfo"
+	fi
 else
+	# No debuginfo requested
 	CMAKE_BUILD_TYPE="Release"
 fi
 echo "CMAKE_BUILD_TYPE==${CMAKE_BUILD_TYPE}"
 
 if [ ! -z $USE_NINJA_BUILD ]; then
 	# use ninja-build
-	$CMAKE .. -G Ninja -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE:STRING=$CMAKE_BUILD_TYPE @CMAKE_OPTIONS@
+	$CMAKE .. -G Ninja -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE:STRING="${CMAKE_BUILD_TYPE}" @CMAKE_OPTIONS@
 	ninja-build @MAKE_OPTIONS@
 else
 	# use original cmake
-	$CMAKE .. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE:STRING=$CMAKE_BUILD_TYPE @CMAKE_OPTIONS@
+	$CMAKE .. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE:STRING="${CMAKE_BUILD_TYPE}" @CMAKE_OPTIONS@
 	make %{?_smp_mflags} @MAKE_OPTIONS@
 fi
 
