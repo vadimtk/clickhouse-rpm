@@ -1,0 +1,12 @@
+# Base image used to build clickhouse-rpm, used to simplify and speedup builds in CI
+
+ARG BUILDER_BASE_IMAGE=centos:7
+FROM ${BUILDER_BASE_IMAGE}
+
+RUN yum -y install sudo
+
+COPY . clickhouse-rpm
+
+RUN cd clickhouse-rpm \
+    && ./builder install --deps \
+    && cd ..  && rm -rf clickhouse-rpm

@@ -485,7 +485,10 @@ function setup_local_build()
 	# Extract everything before the first '-' in extracted git tag
 	VER=$(echo $GIT_TAG | awk 'BEGIN {FS="-"}{print $1}')
 
-	if [ "v${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" == "${VER}" ]; then
+	if [ "${FLAG_NO_VERSION_CHECK}" ]; then
+		# Do not validate version, e.g. for master or PR builds.
+		echo "Version: v${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}-${TAG}"
+	elif [ "v${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" == "${VER}" ]; then
 		# Version looks good
 		echo "Version parsed: v${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}-${TAG}"
 	else
@@ -605,7 +608,7 @@ function usage()
 	echo "./builder build --spec"
 	echo "		just create SPEC file"
 	echo "		do not download sources, do not build RPMs"
-	echo "./builder build --rpms [--debuginfo=no] [--cmake-build-type=Debug] [--test] "
+	echo "./builder build --rpms [--debuginfo=no] [--cmake-build-type=Debug] [--test] [--no-version-check]"
 	echo "		download sources, build SPEC file, build RPMs"
 	echo "		do not install dependencies"
 	echo "./builder build --download-sources"
@@ -687,6 +690,7 @@ FLAG_PUBLISH=''
 FLAG_PACKAGECLOUD=''
 FLAG_DELETE=''
 FLAG_DOWNLOAD=''
+FLAG_NO_VERSION_CHECK=''
 
 OPTIONS=$(getopt -o ''  --longoptions \
 test,\
@@ -708,7 +712,8 @@ local-sql,\
 publish,\
 packagecloud:,\
 delete,\
-download\
+download,\
+no-version-check\
 	-- "$@")
 
 #echo "OPTIONS=$OPTIONS"
@@ -805,6 +810,9 @@ while true; do
 			echo "Possible values: Debug Release RelWithDebugInfo MinSizeRel"
 			exit 1
 		fi
+		;;
+	--no-version-check)
+		FLAG_NO_VERSION_CHECK='yes'
 		;;
 	--docker)
 		FLAG_DOCKER='yes'
