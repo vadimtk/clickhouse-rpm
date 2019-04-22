@@ -32,7 +32,7 @@ CH_REPO="${CH_REPO:-https://github.com/yandex/ClickHouse}"
 
 # Git version of ClickHouse that we package
 #CH_VERSION="${CH_VERSION:-19.1.14}"
-CH_VERSION="${CH_VERSION:-19.4.3.11}"
+CH_VERSION="${CH_VERSION:-19.5.3.8}"
 
 # Git tag marker (stable/testing)
 CH_TAG="${CH_TAG:-stable}"
@@ -302,6 +302,12 @@ function build_spec_file()
 		CMAKE_OPTIONS="${CMAKE_OPTIONS} -DGLIBC_COMPATIBILITY=0"
 		CMAKE_OPTIONS="${CMAKE_OPTIONS} -DENABLE_RDKAFKA=0"
 	fi
+
+	if os_centos_7; then
+		echo "CentOS 7 has some special CMAKE_OPTIONS"
+		CMAKE_OPTIONS="${CMAKE_OPTIONS} -DGLIBC_COMPATIBILITY=OFF"
+	fi
+
 	#CMAKE_OPTIONS="${CMAKE_OPTIONS} -DHAVE_THREE_PARAM_SCHED_SETAFFINITY=1"
 	#CMAKE_OPTIONS="${CMAKE_OPTIONS} -DOPENSSL_SSL_LIBRARY=/usr/lib64/libssl.so -DOPENSSL_CRYPTO_LIBRARY=/usr/lib64/libcrypto.so -DOPENSSL_INCLUDE_DIR=/usr/include/openssl"
 	#CMAKE_OPTIONS="${CMAKE_OPTIONS} -DNO_WERROR=1"
