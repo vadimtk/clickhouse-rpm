@@ -1,14 +1,14 @@
 # clickhouse-rpm
-Build ClickHouse RPMs
+This is an RPM builder and it is used to install all required dependencies and build ClickHouse RPMs for CentOS 6, 7 and Amazon Linux.
 
 # Ready-to-use RPMs
-In case you'd like to just get ready RPMs look into [this repo](https://packagecloud.io/Altinity/clickhouse)
+In case you'd like to just install ready-to-use RPMs, and are not interested in building your own hand-made RPMs, there is [detailed explanation](https://github.com/Altinity/clickhouse-rpm-install) on how to use Altinity's [RPM repository](https://packagecloud.io/Altinity/clickhouse)
 
 # Build RPMs
 
 Run `builder` on any RHEL 6 or RHEL 7 based distribution and get ClickHouse source and binary RPM packages as an output.
 
-```bash
+```console
 Usage:
 
 ./builder version
@@ -67,10 +67,6 @@ Usage:
 
 ./builder src --download
 		just download sources
-Tests launched in Docker honor CH_TEST_NAMES env var which is a regexp to choose what tests to run
-CH_TEST_NAMES='^(?!00700_decimal_math).*$' in case you'd like to skip problematic decimal math test
-It is actulally run as clickhouse-test $CH_TEST_NAMES so check for more info with clickhouse-test
-This env var is recognized by: './builder all --test' and './builder test --docker'
 ```
 
 In most cases just run `./builder all`
