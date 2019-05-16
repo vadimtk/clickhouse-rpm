@@ -882,6 +882,13 @@ case $COMMAND in
 version)
 	echo "v$CH_VERSION-$CH_TAG"
 	;;
+enlarge)
+	# enlarge AWS disk partition up to the whole disk
+	sudo yum install -y epel-release
+	sudo yum install -y cloud-utils-growpart
+	sudo growpart /dev/xvda 1
+	sudo reboot
+	;;
 
 all)
 	if [ ! -z "$FLAG_TEST" ]; then
