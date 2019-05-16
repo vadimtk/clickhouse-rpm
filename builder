@@ -32,7 +32,7 @@ CH_REPO="${CH_REPO:-https://github.com/yandex/ClickHouse}"
 
 # Git version of ClickHouse that we package
 #CH_VERSION="${CH_VERSION:-19.1.14}"
-CH_VERSION="${CH_VERSION:-19.5.3.8}"
+CH_VERSION="${CH_VERSION:-19.4.5.35}"
 
 # Git tag marker (stable/testing)
 CH_TAG="${CH_TAG:-stable}"
@@ -881,6 +881,15 @@ case $COMMAND in
 
 version)
 	echo "v$CH_VERSION-$CH_TAG"
+	;;
+
+enlarge)
+	# enlarge AWS disk partition up to the whole disk
+	sudo lsblk
+	sudo yum install -y epel-release
+	sudo yum install -y cloud-utils-growpart
+	sudo growpart /dev/xvda 1
+	sudo reboot
 	;;
 
 all)
