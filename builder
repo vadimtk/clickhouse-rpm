@@ -31,8 +31,7 @@
 CH_REPO="${CH_REPO:-https://github.com/yandex/ClickHouse}"
 
 # Git version of ClickHouse that we package
-#CH_VERSION="${CH_VERSION:-19.8.3.8}"
-CH_VERSION="${CH_VERSION:-19.9.2.4}"
+CH_VERSION="${CH_VERSION:-19.11.2.7}"
 
 # Git tag marker (stable/testing)
 CH_TAG="${CH_TAG:-stable}"
@@ -66,6 +65,9 @@ SRC_DIR="$MY_DIR/src"
 
 # Where RPMs would be built - relative to CWD - makes possible to build in whatever folder needed
 RPMBUILD_ROOT_DIR="$CWD_DIR/rpmbuild"
+
+# What version of devtoolset would be used
+DEVTOOLSET_VERSION="7"
 
 # Detect number of threads to run 'make' command
 export THREADS=$(grep -c ^processor /proc/cpuinfo)
@@ -150,10 +152,10 @@ function install_build_process_dependencies()
 		fi
 
 		sudo yum install -y centos-release-scl
-		sudo yum install -y devtoolset-8
+		sudo yum install -y devtoolset-"${DEVTOOLSET_VERSION}"
 	elif os_ol; then
 		sudo yum install -y scl-utils
-		sudo yum install -y devtoolset-8
+		sudo yum install -y devtoolset-"${DEVTOOLSET_VERSION}"
 		sudo yum install -y cmake3
 	else
 		# fedora
@@ -351,9 +353,9 @@ function build_RPMs()
 
 	banner "Setup path to compilers"
 	if os_centos || os_ol; then
-		export CMAKE=cmake3
-		export CC=/opt/rh/devtoolset-8/root/usr/bin/gcc
-		export CXX=/opt/rh/devtoolset-8/root/usr/bin/g++
+		export CMAKE="cmake3"
+		export CC="/opt/rh/devtoolset-${DEVTOOLSET_VERSION}/root/usr/bin/gcc"
+		export CXX="/opt/rh/devtoolset-${DEVTOOLSET_VERSION}/root/usr/bin/g++"
 		#export CXXFLAGS="${CXXFLAGS} -Wno-maybe-uninitialized"
 	else
 		export CMAKE=cmake
