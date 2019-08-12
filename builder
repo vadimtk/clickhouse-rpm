@@ -119,9 +119,35 @@ function set_rpmbuild_dirs()
 ##
 ##
 ##
+function check_sudo()
+{
+	if which sudo; then
+		echo "sudo available, continue"
+	else
+		echo "sudo is not available, try to install it"
+		yum install -y sudo
+
+		# Recheck sudo again
+		if which sudo; then
+			echo "sudo available, continue"
+		else
+			echo "sudo is not available, can not continue"
+			echo "Install sudo and start again"
+			echo "Exit"
+			
+			exit 1
+		fi
+	fi
+
+}
+
+##
+##
+##
 function install_general_dependencies()
 {
 	banner "Install general dependencies"
+	check_sudo
 	sudo yum install -y git wget curl zip unzip sed
 }
 
@@ -131,6 +157,7 @@ function install_general_dependencies()
 function install_rpm_dependencies()
 {
         banner "RPM build dependencies"
+	check_sudo
 	sudo yum install -y rpm-build redhat-rpm-config createrepo
 }
 
@@ -140,6 +167,7 @@ function install_rpm_dependencies()
 function install_build_process_dependencies()
 {
 	banner "Install build tools"
+	check_sudo
 
 	sudo yum install -y make
 
@@ -176,6 +204,7 @@ function install_build_process_dependencies()
 function install_workarounds()
 {
 	banner "Install workarounds"
+	check_sudo
 
 	# Now all workarounds are included into CMAKE_OPTIONS and MAKE_OPTIONS
 }
@@ -186,6 +215,7 @@ function install_workarounds()
 function install_dependencies()
 {
 	banner "Install dependencies"
+	check_sudo
 
 	install_general_dependencies
 	install_rpm_dependencies
@@ -199,6 +229,8 @@ function install_dependencies()
 ##
 function install_docker()
 {
+	check_sudo
+
 	sudo yum install -y yum-utils device-mapper-persistent-data lvm2
 	sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 	sudo yum install -y docker-ce
@@ -213,6 +245,8 @@ function install_docker()
 ##
 function install_clickhouse_test_deps()
 {
+	check_sudo
+
 	# Install dependencies required by clickhouse-test
 	sudo yum install -y epel-release
 	sudo yum install -y python-lxml
@@ -887,6 +921,8 @@ version)
 
 enlarge)
 	# enlarge AWS disk partition up to the whole disk
+	check_sudo
+
 	sudo lsblk
 	sudo yum install -y epel-release
 	sudo yum install -y cloud-utils-growpart
@@ -963,6 +999,7 @@ install)
 
 		RPMFILES_NUM=$(ls $RPMS_DIR/clickhouse-*.rpm 2> /dev/null|wc -l)
 		if [ $RPMFILES_NUM -gt 0 ]; then
+			check_sudo
 			sudo yum install -y $RPMS_DIR/clickhouse*.rpm
 			sudo service clickhouse-server restart
 		else
