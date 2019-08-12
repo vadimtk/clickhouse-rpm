@@ -407,10 +407,20 @@ function build_RPMs()
 	banner "Build RPMs"
 
 	banner "Build SRPMs"
-	rpmbuild -v -bs "$SPECS_DIR/clickhouse.spec"
+	if rpmbuild -v -bs "$SPECS_DIR/clickhouse.spec"; then
+		echo "SRPMs build completed"
+	else
+		banner "SRPMs build FAILED"
+	fi
+	
 	
 	banner "Build RPMs"
-	rpmbuild -v -bb "$SPECS_DIR/clickhouse.spec"
+	if rpmbuild -v -bb "$SPECS_DIR/clickhouse.spec"; then
+		echo "RPMs build completed"
+	else
+		banner "RPMs build FAILED. Can not continue"
+		exit 1
+	fi
 
 	banner "Build RPMs completed"
 
