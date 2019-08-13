@@ -121,14 +121,14 @@ function set_rpmbuild_dirs()
 ##
 function check_sudo()
 {
-	if which sudo; then
+	if sudo --version > /dev/null; then
 		echo "sudo available, continue"
 	else
 		echo "sudo is not available, try to install it"
 		yum install -y sudo
 
 		# Recheck sudo again
-		if which sudo; then
+		if sudo --version > /dev/null; then
 			echo "sudo available, continue"
 		else
 			echo "sudo is not available, can not continue"
