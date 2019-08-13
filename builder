@@ -138,7 +138,6 @@ function check_sudo()
 			exit 1
 		fi
 	fi
-
 }
 
 ##
@@ -167,8 +166,8 @@ function install_rpm_dependencies()
 function install_build_process_dependencies()
 {
 	banner "Install build tools"
-	check_sudo
 
+	check_sudo
 	sudo yum install -y make
 
 	if os_centos; then
@@ -204,6 +203,7 @@ function install_build_process_dependencies()
 function install_workarounds()
 {
 	banner "Install workarounds"
+
 	check_sudo
 
 	# Now all workarounds are included into CMAKE_OPTIONS and MAKE_OPTIONS
@@ -215,6 +215,7 @@ function install_workarounds()
 function install_dependencies()
 {
 	banner "Install dependencies"
+
 	check_sudo
 
 	install_general_dependencies
