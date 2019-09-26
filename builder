@@ -33,6 +33,9 @@ CH_REPO="${CH_REPO:-https://github.com/yandex/ClickHouse}"
 # Git version of ClickHouse that we package
 CH_VERSION="${CH_VERSION:-19.14.6.12}"
 
+# Fill if some commits need to be cherry-picked before build
+CH_EXTRA_COMMITS=( 54a5b801b708701b1ddbda95887465b9f7ae5740 )
+
 # Git tag marker (stable/testing)
 CH_TAG="${CH_TAG:-stable}"
 #CH_TAG="${CH_TAG:-testing}"
@@ -67,7 +70,7 @@ SRC_DIR="$MY_DIR/src"
 RPMBUILD_ROOT_DIR="$CWD_DIR/rpmbuild"
 
 # What version of devtoolset would be used
-DEVTOOLSET_VERSION="7"
+DEVTOOLSET_VERSION="8"
 
 # Detect number of threads to run 'make' command
 export THREADS=$(grep -c ^processor /proc/cpuinfo)
@@ -294,6 +297,11 @@ function download_sources()
 
 	echo "Checkout specific tag v${CH_VERSION}-${CH_TAG}"
 	git checkout "v${CH_VERSION}-${CH_TAG}"
+
+	for commit in "${CH_EXTRA_COMMITS[@]}"; do
+		echo "Cherry-pick commit $commit"
+		git cherry-pick $commit
+	done
 
 	echo "Update submodules"
 	git submodule update --init --recursive
