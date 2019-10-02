@@ -706,6 +706,9 @@ function usage()
 	echo "		URL to file to be deleted can be copy+pasted from packagecloud.io site and is expected as:"
 	echo "		https://packagecloud.io/Altinity/clickhouse/packages/el/7/clickhouse-test-19.4.3.1-1.el7.x86_64.rpm"
 	echo
+	echo "./builder list --rpms"
+	echo "		list available RPMs"
+	echo
 	echo "./builder src --download"
 	echo "		just download sources"
 
@@ -1174,6 +1177,15 @@ repo)
 		echo "Unknwon $COMMAND path"
 		exit 1
 	fi
+	;;
+
+list)
+	if [ ! -z "$FLAG_RPMS" ]; then
+		banner "list --rpms"
+		list_RPMs
+		#list_SRPMs
+	fi
+
 	;;
 
 src)
