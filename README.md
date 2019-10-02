@@ -65,6 +65,9 @@ Usage:
 		URL to file to be deleted can be copy+pasted from packagecloud.io site and is expected as:
 		https://packagecloud.io/Altinity/clickhouse/packages/el/7/clickhouse-test-19.4.3.1-1.el7.x86_64.rpm
 
+./builder list --rpms
+		list available RPMs
+
 ./builder src --download
 		just download sources
 ```
