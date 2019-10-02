@@ -31,10 +31,11 @@
 CH_REPO="${CH_REPO:-https://github.com/yandex/ClickHouse}"
 
 # Git version of ClickHouse that we package
-CH_VERSION="${CH_VERSION:-19.14.6.12}"
+CH_VERSION="${CH_VERSION:-19.15.2.2}"
 
 # Fill if some commits need to be cherry-picked before build
-CH_EXTRA_COMMITS=( 54a5b801b708701b1ddbda95887465b9f7ae5740 )
+#CH_EXTRA_COMMITS=( 54a5b801b708701b1ddbda95887465b9f7ae5740 )
+CH_EXTRA_COMMITS=()
 
 # Git tag marker (stable/testing)
 CH_TAG="${CH_TAG:-stable}"
