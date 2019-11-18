@@ -1047,7 +1047,7 @@ build)
 		build_spec_file
 
 	elif [ ! -z "$FLAG_DOWNLOAD_SOURCES" ]; then
-		banner "build --download"
+		banner "build --download-sources"
 		download_sources
 
 	elif [ ! -z "$FLAG_RPMS" ]; then
