@@ -34,29 +34,29 @@ function publish_packagecloud_distro_version_id()
 
 
 	if os_centos; then
-		if [ $DISTR_MAJOR == 6 ]; then
+		if [ "$DISTR_MAJOR" == "6" ]; then
 			return 27
-		elif [ $DISTR_MAJOR == 7 ]; then
+		elif [ "$DISTR_MAJOR" == "7" ]; then
 			return 140
 		else
 			echo "Unknown centos distro"
 			exit 1
 		fi
 	elif os_fedora; then
-		if [ $DISTR_MAJOR == 25 ]; then
+		if [ "$DISTR_MAJOR" == "25" ]; then
 			return 179
-		elif [ $DISTR_MAJOR == 26 ]; then
+		elif [ "$DISTR_MAJOR" == "26" ]; then
 			return 184
 		else
 			echo "Unknown fedora distro"
 			exit 1
 		fi
 	elif os_ubuntu; then
-		if [ $DISTR_MAJOR == 14 ] && [ "${DISTR_MINOR}" == "04" ]; then
+		if [ "$DISTR_MAJOR" == "14" ] && [ "${DISTR_MINOR}" == "04" ]; then
 			return 20
-		elif [ $DISTR_MAJOR == 16 ] && [ "${DISTR_MINOR}" == "04" ]; then
+		elif [ "$DISTR_MAJOR" == "16" ] && [ "${DISTR_MINOR}" == "04" ]; then
 			return 165
-		elif [ $DISTR_MAJOR == 18 ] && [ "${DISTR_MINOR}" == "04" ]; then
+		elif [ "$DISTR_MAJOR" == "18" ] && [ "${DISTR_MINOR}" == "04" ]; then
 			return 190
 		else
 			echo "Unknown ubuntu distro"
@@ -106,7 +106,7 @@ function publish_packagecloud_files_list()
 	PACKAGECLOUD_ID=$1
 
 	# Path inside user's repo on packagecloud. Ex.: altinity/clickhouse
-	PACKAGECLOUD_PATH="altinity/clickhouse"
+	PACKAGECLOUD_PATH=$2
 
 	# Packagecloud distro version id. See packagecloud_distro_version_id() function. Ex.: 27
 	publish_packagecloud_distro_version_id
@@ -117,7 +117,7 @@ function publish_packagecloud_files_list()
 
 	if [ -n "$2" ]; then
 		# Have args specified. Treat it as a list of files to publish
-		for FILE in ${@:2}; do
+		for FILE in ${@:3}; do
 			publish_packagecloud_file $PACKAGECLOUD_ID $PACKAGECLOUD_PATH $DISTRO_VERSION_ID $FILE
 		done
 	else
@@ -134,18 +134,18 @@ function publish_packagecloud()
 	PACKAGECLOUD_ID=$1
 
 	# Path inside user's repo on packagecloud. Ex.: altinity/clickhouse
-	PACKAGECLOUD_PATH="altinity/clickhouse"
+	PACKAGECLOUD_PATH=$2
 
 	# Packagecloud distro version id. See packagecloud_distro_version_id() function. Ex.: 27
 	publish_packagecloud_distro_version_id
 	DISTRO_VERSION_ID=$?
 
-	if [ -n "$2" ]; then
+	if [ -n "$3" ]; then
 		# Have args specified. Treat it as a list of files to publish
-		publish_packagecloud_files_list $PACKAGECLOUD_ID ${@:2}
+		publish_packagecloud_files_list $PACKAGECLOUD_ID $PACKAGECLOUD_PATH ${@:3}
 	else
 		# Do not have any files specified. Publish RPMs from RPMS path
-		publish_packagecloud_files_list $PACKAGECLOUD_ID $(ls "$RPMS_DIR"/clickhouse*.rpm)
+		publish_packagecloud_files_list $PACKAGECLOUD_ID $PACKAGECLOUD_PATH $(ls "$RPMS_DIR"/clickhouse*.rpm)
 	fi
 }
 

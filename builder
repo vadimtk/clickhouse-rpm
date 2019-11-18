@@ -754,6 +754,7 @@ FLAG_DOCKER=''
 FLAG_LOCAL=''
 FLAG_LOCAL_SQL=''
 FLAG_PUBLISH=''
+FLAG_PUBLISH_PATH='altinity/clickhouse'
 FLAG_PACKAGECLOUD=''
 FLAG_DELETE=''
 FLAG_DOWNLOAD=''
@@ -777,6 +778,7 @@ docker,\
 local,\
 local-sql,\
 publish,\
+publish-path:,\
 packagecloud:,\
 delete,\
 download,\
@@ -892,6 +894,12 @@ while true; do
 		;;
 	--publish)
 		FLAG_PUBLISH='yes'
+		;;
+	--publish-path)
+		# Arg is recognized, shift to the value, which is the next arg
+		shift
+
+		FLAG_PUBLISH_PATH=$1
 		;;
 	--packagecloud)
 		# Arg is recognized, shift to the value, which is the next arg
@@ -1159,12 +1167,12 @@ test)
 
 repo)
 	if [ ! -z "$FLAG_PUBLISH" ] && [ ! -z "$FLAG_PACKAGECLOUD" ]; then
-		banner "repo --publish --packagecloud=ABC"
+		banner "repo --publish --publish-path=z/b/c --packagecloud=ABC"
 
 		ensure_os_rpm_based
 		# For publish command files are list of undashed args after the foirst one
 		FILES=("${UNDASHED_ARGS[@]:1}")
-		publish_packagecloud $FLAG_PACKAGECLOUD ${FILES[@]/#/}
+		publish_packagecloud $FLAG_PACKAGECLOUD $FLAG_PUBLISH_PATH ${FILES[@]/#/}
 
 
 	elif [ ! -z "$FLAG_DELETE" ] && [ ! -z "$FLAG_PACKAGECLOUD" ]; then
