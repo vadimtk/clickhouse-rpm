@@ -705,6 +705,11 @@ function usage()
 	echo "		delete packages (specified as URL to file) on packagecloud as USER"
 	echo "		URL to file to be deleted can be copy+pasted from packagecloud.io site and is expected as:"
 	echo "		https://packagecloud.io/Altinity/clickhouse/packages/el/7/clickhouse-test-19.4.3.1-1.el7.x86_64.rpm"
+	echo ""
+	echo "          OS=centos DISTR_MAJOR=7 DISTR_MINOR=5 ./builder repo --publish --packagecloud=XYZ"
+	echo "		OS=centos DISTR_MAJOR=7 DISTR_MINOR=5 ./builder repo --publish --publish-path=altinity/clickhouse-altinity-stable --packagecloud=XYZ"
+	echo "		./builder repo --delete URL1 URL2 URL3"
+
 	echo
 	echo "./builder list --rpms"
 	echo "		list available RPMs"
@@ -754,6 +759,7 @@ FLAG_DOCKER=''
 FLAG_LOCAL=''
 FLAG_LOCAL_SQL=''
 FLAG_PUBLISH=''
+FLAG_PUBLISH_PATH='altinity/clickhouse'
 FLAG_PACKAGECLOUD=''
 FLAG_DELETE=''
 FLAG_DOWNLOAD=''
@@ -777,6 +783,7 @@ docker,\
 local,\
 local-sql,\
 publish,\
+publish-path:,\
 packagecloud:,\
 delete,\
 download,\
@@ -892,6 +899,12 @@ while true; do
 		;;
 	--publish)
 		FLAG_PUBLISH='yes'
+		;;
+	--publish-path)
+		# Arg is recognized, shift to the value, which is the next arg
+		shift
+
+		FLAG_PUBLISH_PATH=$1
 		;;
 	--packagecloud)
 		# Arg is recognized, shift to the value, which is the next arg
@@ -1047,7 +1060,7 @@ build)
 		build_spec_file
 
 	elif [ ! -z "$FLAG_DOWNLOAD_SOURCES" ]; then
-		banner "build --download"
+		banner "build --download-sources"
 		download_sources
 
 	elif [ ! -z "$FLAG_RPMS" ]; then
@@ -1159,12 +1172,12 @@ test)
 
 repo)
 	if [ ! -z "$FLAG_PUBLISH" ] && [ ! -z "$FLAG_PACKAGECLOUD" ]; then
-		banner "repo --publish --packagecloud=ABC"
+		banner "repo --publish --publish-path=z/b/c --packagecloud=ABC"
 
 		ensure_os_rpm_based
 		# For publish command files are list of undashed args after the foirst one
 		FILES=("${UNDASHED_ARGS[@]:1}")
-		publish_packagecloud $FLAG_PACKAGECLOUD ${FILES[@]/#/}
+		publish_packagecloud $FLAG_PACKAGECLOUD $FLAG_PUBLISH_PATH ${FILES[@]/#/}
 
 
 	elif [ ! -z "$FLAG_DELETE" ] && [ ! -z "$FLAG_PACKAGECLOUD" ]; then
