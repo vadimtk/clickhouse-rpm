@@ -86,6 +86,13 @@ function publish_packagecloud_file()
 	# Path to file to publish
 	FILE_PATH=$4
 
+	# Check curl is in place
+	if ! curl --version > /dev/null; then
+		echo "curl is not available, can not continue"
+		exit 1
+	fi
+
+
 	echo -n "Publishing file: $FILE_PATH"
 	if curl --show-error --silent --output /dev/null -X POST https://$PACKAGECLOUD_ID:@packagecloud.io/api/v1/repos/$PACKAGECLOUD_PATH/packages.json \
 		-F "package[distro_version_id]=$DISTRO_VERSION_ID" \
@@ -156,6 +163,12 @@ function publish_packagecloud_delete()
 {
 	# Packagecloud user id. Ex.: 123ab45678c9012d3e4567890abcdef1234567890abcdef1
 	PACKAGECLOUD_ID=$1
+
+	# Check curl is in place
+	if ! curl --version > /dev/null; then
+		echo "curl is not available, can not continue"
+		exit 1
+	fi
 
 	if [ -n "$2" ]; then
 		# Have args specified. Treat it as a list of files to delete
