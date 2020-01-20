@@ -706,8 +706,8 @@ function usage()
 	echo "		URL to file to be deleted can be copy+pasted from packagecloud.io site and is expected as:"
 	echo "		https://packagecloud.io/Altinity/clickhouse/packages/el/7/clickhouse-test-19.4.3.1-1.el7.x86_64.rpm"
 	echo ""
-	echo "          OS=centos DISTR_MAJOR=7 DISTR_MINOR=5 ./builder repo --publish --packagecloud=XYZ"
-	echo "		OS=centos DISTR_MAJOR=7 DISTR_MINOR=5 ./builder repo --publish --publish-path=altinity/clickhouse-altinity-stable --packagecloud=XYZ"
+	echo "		OS=centos DISTR_MAJOR=7 DISTR_MINOR=5 ./builder repo --publish --packagecloud=XYZ [file(s)]"
+	echo "		OS=centos DISTR_MAJOR=7 DISTR_MINOR=5 ./builder repo --publish --publish-path=altinity/clickhouse-altinity-stable --packagecloud=XYZ [file(s)]"
 	echo "		./builder repo --delete URL1 URL2 URL3"
 
 	echo
