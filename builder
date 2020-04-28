@@ -355,6 +355,9 @@ function build_spec_file()
 		echo "CentOS 7 has some special CMAKE_OPTIONS"
 		CMAKE_OPTIONS="${CMAKE_OPTIONS} -DGLIBC_COMPATIBILITY=OFF"
 		CMAKE_OPTIONS="${CMAKE_OPTIONS} -DNO_WERROR=1"
+		# Starting with v20.3 there is new option to tolerate warnings
+                CMAKE_OPTIONS="${CMAKE_OPTIONS} -DWERROR=0"
+
 	fi
 
 	#CMAKE_OPTIONS="${CMAKE_OPTIONS} -DHAVE_THREE_PARAM_SCHED_SETAFFINITY=1"
