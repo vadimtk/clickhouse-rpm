@@ -31,14 +31,15 @@
 CH_REPO="${CH_REPO:-https://github.com/yandex/ClickHouse}"
 
 # Git version of ClickHouse that we package
-CH_VERSION="${CH_VERSION:-20.1.11.73}"
+CH_VERSION="${CH_VERSION:-20.3.8.53}"
 
 # Fill if some commits need to be cherry-picked before build
 #CH_EXTRA_COMMITS=( 54a5b801b708701b1ddbda95887465b9f7ae5740 )
 CH_EXTRA_COMMITS=()
 
 # Git tag marker (stable/testing)
-CH_TAG="${CH_TAG:-stable}"
+CH_TAG="${CH_TAG:-lts}"
+#CH_TAG="${CH_TAG:-stable}"
 #CH_TAG="${CH_TAG:-testing}"
 
 # Hostname of the server used to publish packages
@@ -71,7 +72,7 @@ SRC_DIR="$MY_DIR/src"
 RPMBUILD_ROOT_DIR="$CWD_DIR/rpmbuild"
 
 # What version of devtoolset would be used
-DEVTOOLSET_VERSION="8"
+DEVTOOLSET_VERSION="9"
 
 # Detect number of threads to run 'make' command
 export THREADS=$(grep -c ^processor /proc/cpuinfo)
@@ -354,6 +355,8 @@ function build_spec_file()
 		echo "CentOS 7 has some special CMAKE_OPTIONS"
 		CMAKE_OPTIONS="${CMAKE_OPTIONS} -DGLIBC_COMPATIBILITY=OFF"
 		CMAKE_OPTIONS="${CMAKE_OPTIONS} -DNO_WERROR=1"
+		# Starting with v20.3 there is new option to tolerate warnings
+		CMAKE_OPTIONS="${CMAKE_OPTIONS} -DWERROR=0"
 	fi
 
 	#CMAKE_OPTIONS="${CMAKE_OPTIONS} -DHAVE_THREE_PARAM_SCHED_SETAFFINITY=1"
