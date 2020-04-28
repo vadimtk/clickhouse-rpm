@@ -72,7 +72,7 @@ SRC_DIR="$MY_DIR/src"
 RPMBUILD_ROOT_DIR="$CWD_DIR/rpmbuild"
 
 # What version of devtoolset would be used
-DEVTOOLSET_VERSION="8"
+DEVTOOLSET_VERSION="9"
 
 # Detect number of threads to run 'make' command
 export THREADS=$(grep -c ^processor /proc/cpuinfo)
