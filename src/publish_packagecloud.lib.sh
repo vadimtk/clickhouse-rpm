@@ -21,6 +21,8 @@
 ##
 function publish_packagecloud_distro_version_id()
 {
+	# curl https://$PACKAGECLOUD_ID:@packagecloud.io/api/v1/distributions.json
+	#
 	# EL6  - 27
 	# EL7  - 140
 	# FC25 - 179
