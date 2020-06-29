@@ -204,3 +204,47 @@ function publish_packagecloud_delete()
 
 }
 
+##
+##
+##
+function publish_packagecloud_download()
+{
+	set +x
+	PACKAGES=(clickhouse-test clickhouse-server-common clickhouse-server clickhouse-common-static clickhouse-client)
+
+	# Packagecloud path. Ex.: altinity/clickhouse
+	PACKAGECLOUD_PATH=$1
+
+	# Check curl is in place
+	if ! curl --version > /dev/null; then
+		echo "curl is not available, can not continue"
+		exit 1
+	fi
+
+	if [ -n "$2" ]; then
+		# Have args specified. Treat it as a list of versions to download
+		for VERSION in ${@:2}; do
+			echo "VERSION=$VERSION"
+			for PACKAGE in ${PACKAGES[@]}; do
+				while true; do
+					echo "PACKAGE=$PACKAGE"
+					URL="https://packagecloud.io/${PACKAGECLOUD_PATH}/packages/el/7/${PACKAGE}-${VERSION}-1.el7.x86_64.rpm/download.rpm"
+					echo ""
+					echo ""
+					echo -n $URL
+					if wget --content-disposition "${URL}"; then
+						echo "...OK"
+						break
+					else
+						echo "...FAILED"
+					fi
+				done
+			done
+		done
+	else
+		echo "Please specify VERSION(s) to download"
+	fi
+
+}
+
+

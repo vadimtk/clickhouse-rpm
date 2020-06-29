@@ -710,8 +710,9 @@ function usage()
 	echo "		https://packagecloud.io/Altinity/clickhouse/packages/el/7/clickhouse-test-19.4.3.1-1.el7.x86_64.rpm"
 	echo ""
 	echo "		OS=centos DISTR_MAJOR=7 DISTR_MINOR=5 ./builder repo --publish --packagecloud=XYZ [file(s)]"
-	echo "		OS=centos DISTR_MAJOR=7 DISTR_MINOR=5 ./builder repo --publish --publish-path=altinity/clickhouse-altinity-stable --packagecloud=XYZ [file(s)]"
+	echo "		OS=centos DISTR_MAJOR=7 DISTR_MINOR=5 ./builder repo --publish --path=altinity/clickhouse-altinity-stable --packagecloud=XYZ [file(s)]"
 	echo "		./builder repo --delete URL1 URL2 URL3"
+	echo "./builder repo --download [--path=altinity/clickhouse-altinity-stable] <VERSION>"
 
 	echo
 	echo "./builder list --rpms"
@@ -762,7 +763,7 @@ FLAG_DOCKER=''
 FLAG_LOCAL=''
 FLAG_LOCAL_SQL=''
 FLAG_PUBLISH=''
-FLAG_PUBLISH_PATH='altinity/clickhouse'
+FLAG_PATH='altinity/clickhouse'
 FLAG_PACKAGECLOUD=''
 FLAG_DELETE=''
 FLAG_DOWNLOAD=''
@@ -786,7 +787,7 @@ docker,\
 local,\
 local-sql,\
 publish,\
-publish-path:,\
+path:,\
 packagecloud:,\
 delete,\
 download,\
@@ -903,11 +904,11 @@ while true; do
 	--publish)
 		FLAG_PUBLISH='yes'
 		;;
-	--publish-path)
+	--path)
 		# Arg is recognized, shift to the value, which is the next arg
 		shift
 
-		FLAG_PUBLISH_PATH=$1
+		FLAG_PATH=$1
 		;;
 	--packagecloud)
 		# Arg is recognized, shift to the value, which is the next arg
@@ -1175,12 +1176,12 @@ test)
 
 repo)
 	if [ ! -z "$FLAG_PUBLISH" ] && [ ! -z "$FLAG_PACKAGECLOUD" ]; then
-		banner "repo --publish --publish-path=z/b/c --packagecloud=ABC"
+		banner "repo --publish --path=z/b/c --packagecloud=ABC"
 
 		ensure_os_rpm_based
 		# For publish command files are list of undashed args after the foirst one
 		FILES=("${UNDASHED_ARGS[@]:1}")
-		publish_packagecloud $FLAG_PACKAGECLOUD $FLAG_PUBLISH_PATH ${FILES[@]/#/}
+		publish_packagecloud $FLAG_PACKAGECLOUD $FLAG_PATH ${FILES[@]/#/}
 
 
 	elif [ ! -z "$FLAG_DELETE" ] && [ ! -z "$FLAG_PACKAGECLOUD" ]; then
@@ -1189,6 +1190,13 @@ repo)
 		# run publish script with all the rest of CLI params
 		FILES=("${UNDASHED_ARGS[@]:1}")
 		publish_packagecloud_delete $FLAG_PACKAGECLOUD ${FILES[@]/#/}
+
+	elif [ ! -z "$FLAG_DOWNLOAD" ]; then
+		banner "repo --download"
+
+		# run publish script with all the rest of CLI params
+		VERSIONS=("${UNDASHED_ARGS[@]:1}")
+		publish_packagecloud_download $FLAG_PATH ${VERSIONS[@]/#/}
 	else
 		echo "Unknwon $COMMAND path"
 		exit 1
