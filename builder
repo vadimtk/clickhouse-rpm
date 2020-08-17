@@ -702,8 +702,8 @@ function usage()
 	echo "./builder test --local-sql"
 	echo "		run several SQL queries on locally installed ClickHouse"
 	echo
-	echo "./builder repo --publish --packagecloud=<packagecloud USER ID>"
-	echo "		publish packages on packagecloud as USER"
+	echo "./builder repo --publish --packagecloud=<packagecloud USER ID> [FILE 1] [FILE 2] [FILE N]"
+	echo "		publish packages on packagecloud as USER. In case no files(s) provided, rpmbuild/RPMS/x86_64/*.rpm would be used"
 	echo "./builder repo --delete  --packagecloud=<packagecloud USER ID> file1_URL [file2_URL ...]"
 	echo "		delete packages (specified as URL to file) on packagecloud as USER"
 	echo "		URL to file to be deleted can be copy+pasted from packagecloud.io site and is expected as:"
