@@ -58,12 +58,17 @@ Usage:
 ./builder test --local-sql
 		run several SQL queries on locally installed ClickHouse
 
-./builder repo --publish --packagecloud=<packagecloud USER ID>
-		publish packages on packagecloud as USER
+./builder repo --publish --packagecloud=<packagecloud USER ID> [FILE 1] [FILE 2] [FILE N]
+		publish packages on packagecloud as USER. In case no files(s) provided, rpmbuild/RPMS/x86_64/*.rpm would be used
 ./builder repo --delete  --packagecloud=<packagecloud USER ID> file1_URL [file2_URL ...]
 		delete packages (specified as URL to file) on packagecloud as USER
 		URL to file to be deleted can be copy+pasted from packagecloud.io site and is expected as:
 		https://packagecloud.io/Altinity/clickhouse/packages/el/7/clickhouse-test-19.4.3.1-1.el7.x86_64.rpm
+
+		OS=centos DISTR_MAJOR=7 DISTR_MINOR=5 ./builder repo --publish --packagecloud=XYZ [file(s)]
+		OS=centos DISTR_MAJOR=7 DISTR_MINOR=5 ./builder repo --publish --path=altinity/clickhouse-altinity-stable --packagecloud=XYZ [file(s)]
+		./builder repo --delete URL1 URL2 URL3
+./builder repo --download [--path=altinity/clickhouse-altinity-stable] <VERSION>
 
 ./builder list --rpms
 		list available RPMs
