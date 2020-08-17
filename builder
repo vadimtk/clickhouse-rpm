@@ -1176,10 +1176,10 @@ test)
 
 repo)
 	if [ ! -z "$FLAG_PUBLISH" ] && [ ! -z "$FLAG_PACKAGECLOUD" ]; then
-		banner "repo --publish --path=z/b/c --packagecloud=ABC"
+		banner "repo --publish --path=a/b/c --packagecloud=XYZ"
 
 		ensure_os_rpm_based
-		# For publish command files are list of undashed args after the foirst one
+		# for publish command list of files to be published is the list of undashed args after the first one (which is 'repo')
 		FILES=("${UNDASHED_ARGS[@]:1}")
 		publish_packagecloud $FLAG_PACKAGECLOUD $FLAG_PATH ${FILES[@]/#/}
 
