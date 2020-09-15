@@ -405,7 +405,7 @@ fi
 %files test
 /usr/bin/clickhouse-test
 /usr/bin/clickhouse-test-server
-/usr/bin/clickhouse-performance-test
+#/usr/bin/clickhouse-performance-test
 # folder
 /usr/share/clickhouse-test
 %config(noreplace) /etc/clickhouse-client/client-test.xml
