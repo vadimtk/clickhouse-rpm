@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Yandex ClickHouse DBMS build script for RHEL based distributions
+# ClickHouse DBMS build script for RHEL based distributions
 #
 # Important notes:
 #  - build requires ~35 GB of disk space
@@ -28,7 +28,7 @@
 # limitations under the License.
 
 # Git repository of Clickhouse
-CH_REPO="${CH_REPO:-https://github.com/yandex/ClickHouse}"
+CH_REPO="${CH_REPO:-https://github.com/ClickHouse/ClickHouse}"
 
 # Git version of ClickHouse that we package
 CH_VERSION="${CH_VERSION:-20.8.3.18}"
